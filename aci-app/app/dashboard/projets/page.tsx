@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getProjetsActifs, getProjetsTermines, getParticipationsByProjetId, createProjet, updateProjet, terminerProjet, createParticipationProjet, getAssociesActifs } from "@/app/lib/supabase/db";
+import { getProjetsActifs, getParticipationsByProjetId, createProjet, updateProjet, terminerProjet, createParticipationProjet, getAssociesActifs } from "@/app/lib/supabase/db";
 import { toast } from "@/components/ui/use-toast";
 import { Associe, Projet, ParticipationProjet } from "@/app/types";
 
@@ -21,7 +21,6 @@ export default function ProjetsPage() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedProjet, setSelectedProjet] = useState<Projet | null>(null);
   const [projetsActifs, setProjetsActifs] = useState<Projet[]>([]);
-  const [projetsTermines, setProjetsTermines] = useState<Projet[]>([]);
   const [associesActifs, setAssociesActifs] = useState<Associe[]>([]);
   const [participations, setParticipations] = useState<Record<string, ParticipationProjet[]>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -48,18 +47,14 @@ export default function ProjetsPage() {
         const associes = await getAssociesActifs();
         setAssociesActifs(associes);
         
-        // Charger les projets actifs et terminés
+        // Charger les projets actifs
         const projetActifs = await getProjetsActifs();
-        const projetTermines = await getProjetsTermines();
-        
         setProjetsActifs(projetActifs);
-        setProjetsTermines(projetTermines);
         
         // Charger les participations pour chaque projet
-        const tousLesProjets = [...projetActifs, ...projetTermines];
         const participationsParProjet: Record<string, ParticipationProjet[]> = {};
         
-        for (const projet of tousLesProjets) {
+        for (const projet of projetActifs) {
           const participationsProjet = await getParticipationsByProjetId(projet.id);
           participationsParProjet[projet.id] = participationsProjet;
         }
@@ -190,9 +185,6 @@ export default function ProjetsPage() {
       if (projetMisAJour.actif) {
         const projetActifs = await getProjetsActifs();
         setProjetsActifs(projetActifs);
-      } else {
-        const projetTermines = await getProjetsTermines();
-        setProjetsTermines(projetTermines);
       }
       
       // Fermer le dialogue
@@ -220,10 +212,8 @@ export default function ProjetsPage() {
       
       // Rafraîchir les données
       const projetActifs = await getProjetsActifs();
-      const projetTermines = await getProjetsTermines();
       
       setProjetsActifs(projetActifs);
-      setProjetsTermines(projetTermines);
       
       toast({
         title: "Succès",
