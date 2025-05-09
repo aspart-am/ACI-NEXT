@@ -3,11 +3,31 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/app/lib/supabase/client';
+import { Session } from '@supabase/supabase-js';
+
+interface TestResult {
+  associes: {
+    success: boolean;
+    count: number;
+    data: any[];
+  };
+  revenus: {
+    success: boolean;
+    count: number;
+    data: any[];
+  };
+  parametres: {
+    success: boolean;
+    count: number;
+    data: any[];
+    error: string | null;
+  };
+}
 
 export default function AuthDebugPage() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [loadingTest, setLoadingTest] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,9 +43,9 @@ export default function AuthDebugPage() {
         
         setSession(data.session);
         console.log('Session data:', data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Erreur de session:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue');
       } finally {
         setLoadingSession(false);
       }
@@ -75,24 +95,24 @@ export default function AuthDebugPage() {
         associes: {
           success: true,
           count: associes?.length || 0,
-          data: associes
+          data: associes || []
         },
         revenus: {
           success: true,
           count: revenus?.length || 0,
-          data: revenus
+          data: revenus || []
         },
         parametres: {
           success: !parametresError,
           count: parametres?.length || 0,
-          data: parametres,
+          data: parametres || [],
           error: parametresErrMsg
         }
       });
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur de test:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
       setTestResult(null);
     } finally {
       setLoadingTest(false);
@@ -118,7 +138,7 @@ export default function AuthDebugPage() {
               <p className="text-green-600 font-bold">✅ Authentifié</p>
               <p>User ID: {session.user.id}</p>
               <p>Email: {session.user.email}</p>
-              <p>Expiration: {new Date(session.expires_at * 1000).toLocaleString()}</p>
+              <p>Expiration: {session.expires_at ? new Date(session.expires_at * 1000).toLocaleString() : 'Non définie'}</p>
             </div>
           ) : (
             <p className="text-red-500 font-bold">❌ Non authentifié</p>

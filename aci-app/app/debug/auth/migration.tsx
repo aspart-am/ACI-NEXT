@@ -4,10 +4,16 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@supabase/supabase-js';
 
+interface MigrationResult {
+  success: boolean;
+  message?: string;
+  error?: Error;
+}
+
 export default function MigrationPage() {
   const [serviceKey, setServiceKey] = useState('');
   const [executing, setExecuting] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<MigrationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Script de migration SQL
@@ -153,12 +159,13 @@ WITH CHECK (true);
       // Stocker la clé de service dans localStorage pour le débogage
       localStorage.setItem('debug_service_role_key', serviceKey.trim());
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur lors de l\'exécution de la migration:', err);
-      setError(err.message || 'Une erreur est survenue lors de l\'exécution de la migration');
+      const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de l\'exécution de la migration';
+      setError(errorMessage);
       setResult({
         success: false,
-        error: err
+        error: err instanceof Error ? err : new Error(errorMessage)
       });
     } finally {
       setExecuting(false);

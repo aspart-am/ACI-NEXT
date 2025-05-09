@@ -9,8 +9,7 @@ import {
   CartesianGrid, 
   Tooltip, 
   Legend, 
-  ResponsiveContainer,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,6 +17,16 @@ import { ResultatRepartition } from '@/app/types';
 
 interface RepartitionGraphProps {
   resultats: ResultatRepartition[];
+}
+
+interface GraphData {
+  id: string;
+  name: string;
+  'Part fixe': number;
+  'Part RCP': number;
+  'Part Projets': number;
+  total: number;
+  nomComplet: string;
 }
 
 const BAR_COLORS = {
@@ -46,7 +55,7 @@ export function RepartitionGraph({ resultats }: RepartitionGraphProps) {
   }));
   
   // Gestion du clic sur une barre
-  const handleBarClick = (data: any) => {
+  const handleBarClick = (data: GraphData) => {
     setSelectedAssocieId(data.id === selectedAssocieId ? null : data.id);
   };
   

@@ -41,7 +41,7 @@ export function SaveRepartitionButton({ resultats }: SaveRepartitionButtonProps)
           variant: 'destructive'
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Erreur',
         description: 'Une erreur inattendue est survenue',
