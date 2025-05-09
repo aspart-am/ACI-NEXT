@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PlusCircle, Edit, Check, X, Users, Calendar } from "lucide-react";
+import { PlusCircle, Edit, Users, Calendar } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,18 +43,20 @@ export default function ReunionsPage() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null);
   const [reunions, setReunions] = useState<Reunion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [associes, setAssocies] = useState<Associe[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadReunions();
-    loadAssocies();
+    const loadData = async () => {
+      await Promise.all([loadReunions(), loadAssocies()]);
+    };
+    loadData();
   }, []);
 
   const loadReunions = async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       console.log('Chargement des réunions...');
       
       const reunionsData = await getAllReunions();
@@ -102,7 +104,7 @@ export default function ReunionsPage() {
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 

@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PlusCircle, Edit, Archive, Eye, AlertCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { PlusCircle, Edit, Archive, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getAllProjets, getProjetsActifs, getProjetsTermines, getParticipationsByProjetId, createProjet, updateProjet, terminerProjet, createParticipationProjet, updateParticipationProjet, getAssociesActifs } from "@/app/lib/supabase/db";
+import { getProjetsActifs, getProjetsTermines, getParticipationsByProjetId, createProjet, updateProjet, terminerProjet, createParticipationProjet, getAssociesActifs } from "@/app/lib/supabase/db";
 import { toast } from "@/components/ui/use-toast";
 import { Associe, Projet, ParticipationProjet } from "@/app/types";
 
@@ -89,7 +88,7 @@ export default function ProjetsPage() {
   };
 
   // Mettre à jour les informations du nouveau projet
-  const handleChangeNouveauProjet = (field: keyof Projet, value: any) => {
+  const handleChangeNouveauProjet = (field: keyof Projet, value: string | number | boolean) => {
     setNouveauProjet(prev => ({
       ...prev,
       [field]: value
@@ -172,18 +171,19 @@ export default function ProjetsPage() {
   };
 
   // Gérer la modification d'un projet existant
-  const handleEditProjet = async (e: React.FormEvent) => {
+  const handleEditProjet = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!selectedProjet) return;
     
     try {
+      const form = e.target as HTMLFormElement;
       // Mettre à jour le projet
       const projetMisAJour = await updateProjet(selectedProjet.id, {
-        titre: (e.target as any).titre.value,
-        description: (e.target as any).description.value,
+        titre: (form.elements.namedItem('titre') as HTMLInputElement).value,
+        description: (form.elements.namedItem('description') as HTMLTextAreaElement).value,
         poids: parseInt(poidsModifie),
-        date_debut: (e.target as any).date.value
+        date_debut: (form.elements.namedItem('date') as HTMLInputElement).value
       });
       
       // Rafraîchir les données

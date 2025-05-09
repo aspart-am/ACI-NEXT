@@ -5,12 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { getAssociesActifs, getProjetsActifs, getChargesTotales, getRevenusTotaux, getParametresRepartitionActifs } from "@/app/lib/supabase/db";
 import { useEffect, useState } from "react";
-import { Associe, ParametresRepartition } from "@/app/types";
+import { Associe, ParametresRepartition, Projet } from "@/app/types";
 
 export default function DashboardPage() {
   // États pour stocker les données
   const [associes, setAssocies] = useState<Associe[]>([]);
-  const [projetsActifs, setProjetsActifs] = useState<any[]>([]);
+  const [projetsActifs, setProjetsActifs] = useState<Projet[]>([]);
   const [totalRevenus, setTotalRevenus] = useState<number>(0);
   const [totalCharges, setTotalCharges] = useState<number>(0);
   const [revenuNet, setRevenuNet] = useState<number>(0);

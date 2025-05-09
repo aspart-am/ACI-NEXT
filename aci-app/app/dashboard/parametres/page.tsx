@@ -29,9 +29,6 @@ export default function ParametresPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
-  
-  // État pour le slider actuellement en cours de modification
-  const [activeSlider, setActiveSlider] = useState<'fixe' | 'reunions' | 'projets' | null>(null);
 
   // Charger les paramètres actuels au chargement du composant
   useEffect(() => {
@@ -99,7 +96,6 @@ export default function ParametresPage() {
   // Fonction pour gérer les changements dans les sliders de pourcentage
   const handleSliderChange = (name: 'pourcentage_fixe' | 'pourcentage_reunions' | 'pourcentage_projets', value: number[]) => {
     const newValue = Math.round(value[0]);
-    setActiveSlider(name === 'pourcentage_fixe' ? 'fixe' : name === 'pourcentage_reunions' ? 'reunions' : 'projets');
     
     // Calculer les autres valeurs pour maintenir le total à 100%
     const oldValue = parametres[name];
@@ -167,7 +163,6 @@ export default function ParametresPage() {
     }
     
     setParametres(updatedParams);
-    setActiveSlider(null);
   };
 
   // Fonction pour soumettre les paramètres
