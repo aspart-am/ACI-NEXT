@@ -301,7 +301,7 @@ export default function ProjetsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Projets et Missions</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Projets</h1>
           <p className="mt-2">
             Gérez les projets et suivez la contribution des associés
           </p>
@@ -316,9 +316,9 @@ export default function ProjetsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Projets actifs</CardTitle>
+          <CardTitle>Projets</CardTitle>
           <CardDescription>
-            Projets en cours de réalisation
+            Liste des projets en cours
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -384,78 +384,6 @@ export default function ProjetsPage() {
                         Archiver
                       </Button>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Projets terminés</CardTitle>
-          <CardDescription>
-            Projets archivés et terminés
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Titre</TableHead>
-                <TableHead>Période</TableHead>
-                <TableHead>Poids</TableHead>
-                <TableHead>Participants</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projetsTermines.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
-                    Aucun projet terminé
-                  </TableCell>
-                </TableRow>
-              ) : projetsTermines.map((projet) => (
-                <TableRow key={projet.id}>
-                  <TableCell className="font-medium">
-                    <div>
-                      <div>{projet.titre}</div>
-                      <div className="text-xs text-muted-foreground">{projet.description}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <div>{formatDate(projet.date_debut)} -</div>
-                      <div>{formatDate(projet.date_fin || "")}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {Array(projet.poids).fill(0).map((_, i) => (
-                      <span key={i} className="text-muted-foreground">★</span>
-                    ))}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex -space-x-2">
-                      {participations[projet.id]?.map((participation) => (
-                        <Avatar key={participation.id} className="border-2 border-background h-8 w-8" title={`${participation.associe?.prenom} ${participation.associe?.nom} (${participation.pourcentage_contribution}%)`}>
-                          <AvatarFallback className="bg-muted text-muted-foreground">
-                            {participation.associe && getInitiales(participation.associe.nom, participation.associe.prenom)}
-                          </AvatarFallback>
-                        </Avatar>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => openEditDialog(projet)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Détails
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

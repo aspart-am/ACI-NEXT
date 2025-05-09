@@ -137,13 +137,8 @@ export default function RevenusPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="revenus" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="revenus">Revenus bruts</TabsTrigger>
-          <TabsTrigger value="charges">Charges</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="revenus" className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-4">
           <div className="flex justify-between">
             <CardTitle className="text-xl">Liste des revenus</CardTitle>
             <Button onClick={handleAddRevenu}>Ajouter un revenu</Button>
@@ -185,9 +180,9 @@ export default function RevenusPage() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="charges" className="space-y-4">
+        </div>
+
+        <div className="space-y-4">
           <div className="flex justify-between">
             <CardTitle className="text-xl">Liste des charges</CardTitle>
             <Button onClick={handleAddCharge}>Ajouter une charge</Button>
@@ -231,8 +226,8 @@ export default function RevenusPage() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       {/* Dialogue pour le formulaire d'ajout/modification de revenu */}
       <Dialog open={isRevenuFormOpen} onOpenChange={setIsRevenuFormOpen}>

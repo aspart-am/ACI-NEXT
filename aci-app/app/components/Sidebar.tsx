@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { MoveRight, Home, Users, CalendarClock, BarChart4, Settings, FileCode2, LogOut } from 'lucide-react';
+import { MoveRight, Home, Users, CalendarClock, BarChart4, Settings, FileCode2, LogOut, Euro } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
@@ -13,7 +13,7 @@ interface SidebarProps {
 export function Sidebar({ className, isCollapsed = false, onToggle }: SidebarProps) {
   const links = [
     { href: '/dashboard', icon: Home, label: 'Tableau de bord' },
-    { href: '/dashboard/revenus', icon: BarChart4, label: 'Revenus' },
+    { href: '/dashboard/revenus', icon: Euro, label: 'Revenus' },
     { href: '/dashboard/associes', icon: Users, label: 'Associés' },
     { href: '/dashboard/reunions', icon: CalendarClock, label: 'Réunions' },
     { href: '/dashboard/projets', icon: FileCode2, label: 'Projets' },
@@ -28,7 +28,10 @@ export function Sidebar({ className, isCollapsed = false, onToggle }: SidebarPro
       className
     )}>
       <div className="flex h-16 items-center border-b border-sidebar-border px-4">
-        <div className="flex items-center gap-2">
+        <button 
+          onClick={onToggle}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           {isCollapsed ? (
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white">
               <span className="font-bold">ACI</span>
@@ -36,13 +39,7 @@ export function Sidebar({ className, isCollapsed = false, onToggle }: SidebarPro
           ) : (
             <div className="text-xl font-bold">ACI Santé</div>
           )}
-        </div>
-        {!isCollapsed && <button 
-          className="ml-auto text-white hover:text-secondary-foreground"
-          onClick={onToggle}
-        >
-          <MoveRight size={20} />
-        </button>}
+        </button>
       </div>
       
       <nav className="flex-1 p-2">

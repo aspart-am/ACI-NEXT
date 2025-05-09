@@ -330,9 +330,9 @@ export default function ReunionsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Prochaines réunions</CardTitle>
+          <CardTitle>Réunions</CardTitle>
           <CardDescription>
-            Liste des réunions à venir
+            Liste des réunions 
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 p-6">
@@ -399,73 +399,6 @@ export default function ReunionsPage() {
               <div>
                 <h3 className="text-lg font-semibold">Aucune réunion à venir</h3>
                 <p className="text-sm">Planifiez une nouvelle réunion en cliquant sur le bouton "Créer une nouvelle réunion"</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Réunions passées</CardTitle>
-          <CardDescription>
-            Historique des réunions
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4 p-6">
-          {reunionsPassees.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Titre</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Durée</TableHead>
-                  <TableHead>Participants</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reunionsPassees.map((reunion) => (
-                  <TableRow key={reunion.id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        <div>{reunion.titre}</div>
-                        <div className="text-xs text-muted-foreground">{reunion.description}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatDate(reunion.date)}</TableCell>
-                    <TableCell>{reunion.duree} min</TableCell>
-                    <TableCell>
-                      <div className="flex -space-x-2">
-                        {reunion.participants.map((participant) => (
-                          <Avatar key={participant.id} className="border-2 border-background h-8 w-8">
-                            <AvatarFallback className={participant.present ? "bg-primary" : "bg-muted"}>
-                              {getInitiales(participant.nom, participant.prenom)}
-                            </AvatarFallback>
-                          </Avatar>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => openPresenceDialog(reunion)}
-                      >
-                        <Users className="h-4 w-4 mr-1" />
-                        Présences
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="flex items-center justify-center p-8">
-              <Calendar className="h-10 w-10 mr-4 opacity-50" />
-              <div>
-                <h3 className="text-lg font-semibold">Aucune réunion passée</h3>
-                <p className="text-sm">Les réunions passées apparaîtront ici</p>
               </div>
             </div>
           )}

@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,48 +9,62 @@ import { calculerRepartitionSupabase } from "@/app/services/repartition";
 import { RepartitionGraph } from "@/app/components/RepartitionGraph";
 import { SaveRepartitionButton } from "@/app/components/SaveRepartitionButton";
 import { AlertCircle } from "lucide-react";
-import { ResultatRepartition } from "@/app/types";
+import { ResultatRepartition, ParametresRepartition } from "@/app/types";
+import { useEffect, useState } from "react";
 
-export default async function RepartitionPage() {
-  // Récupération des données depuis Supabase avec gestion d'erreurs
-  let parametres = null;
-  let revenuNet = 0;
-  let resultatRepartition: ResultatRepartition[] = [];
-  let error = null;
+export default function RepartitionPage() {
+  // États pour stocker les données
+  const [parametres, setParametres] = useState<ParametresRepartition | null>(null);
+  const [revenuNet, setRevenuNet] = useState<number>(0);
+  const [resultatRepartition, setResultatRepartition] = useState<ResultatRepartition[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  try {
-    console.log("RepartitionPage: Début du chargement des données");
-    
-    // Tentative de récupération des données
-    try {
-      console.log("RepartitionPage: Récupération des paramètres...");
-      parametres = await getParametresRepartitionActifs();
-      console.log("RepartitionPage: Paramètres récupérés:", parametres ? "OK" : "NON (null)");
-    } catch (err) {
-      console.error("RepartitionPage: Erreur lors de la récupération des paramètres:", err);
+  // Charger les données au chargement du composant
+  useEffect(() => {
+    async function loadData() {
+      try {
+        console.log("RepartitionPage: Début du chargement des données");
+        
+        // Tentative de récupération des données
+        try {
+          console.log("RepartitionPage: Récupération des paramètres...");
+          const parametresData = await getParametresRepartitionActifs();
+          console.log("RepartitionPage: Paramètres récupérés:", parametresData ? "OK" : "NON (null)");
+          setParametres(parametresData);
+        } catch (err) {
+          console.error("RepartitionPage: Erreur lors de la récupération des paramètres:", err);
+        }
+        
+        try {
+          console.log("RepartitionPage: Récupération du revenu net...");
+          const revenuNetData = await getRevenuNet();
+          console.log("RepartitionPage: Revenu net récupéré:", revenuNetData);
+          setRevenuNet(revenuNetData);
+        } catch (err) {
+          console.error("RepartitionPage: Erreur lors de la récupération du revenu net:", err);
+        }
+        
+        try {
+          console.log("RepartitionPage: Calcul de la répartition...");
+          const resultatData = await calculerRepartitionSupabase();
+          console.log("RepartitionPage: Répartition calculée, nombre de résultats:", resultatData.length);
+          setResultatRepartition(resultatData);
+        } catch (err) {
+          console.error("RepartitionPage: Erreur lors du calcul de la répartition:", err);
+          setError("Impossible de calculer la répartition. Veuillez vérifier les données et réessayer.");
+        }
+        
+      } catch (err) {
+        console.error("RepartitionPage: Erreur générale lors du chargement des données:", err);
+        setError("Impossible de charger les données de répartition. Veuillez vérifier votre connexion et réessayer.");
+      } finally {
+        setLoading(false);
+      }
     }
-    
-    try {
-      console.log("RepartitionPage: Récupération du revenu net...");
-      revenuNet = await getRevenuNet();
-      console.log("RepartitionPage: Revenu net récupéré:", revenuNet);
-    } catch (err) {
-      console.error("RepartitionPage: Erreur lors de la récupération du revenu net:", err);
-    }
-    
-    try {
-      console.log("RepartitionPage: Calcul de la répartition...");
-      resultatRepartition = await calculerRepartitionSupabase();
-      console.log("RepartitionPage: Répartition calculée, nombre de résultats:", resultatRepartition.length);
-    } catch (err) {
-      console.error("RepartitionPage: Erreur lors du calcul de la répartition:", err);
-      throw err; // Propager cette erreur car elle est critique
-    }
-    
-  } catch (err) {
-    console.error("RepartitionPage: Erreur générale lors du chargement des données:", err);
-    error = "Impossible de charger les données de répartition. Veuillez vérifier votre connexion et réessayer.";
-  }
+
+    loadData();
+  }, []);
 
   // Fonction pour obtenir les initiales
   const getInitiales = (nom: string, prenom: string) => {
@@ -84,6 +100,23 @@ export default async function RepartitionPage() {
           </div>
         </CardContent>
       </Card>
+    );
+  }
+
+  // Afficher un indicateur de chargement
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Répartition des Revenus</h1>
+          <p className="text-muted-foreground mt-2">
+            Chargement des données de répartition...
+          </p>
+        </div>
+        <div className="text-center py-10">
+          <p>Veuillez patienter pendant le calcul de la répartition</p>
+        </div>
+      </div>
     );
   }
 
