@@ -77,9 +77,10 @@ export function ChargeForm({ charge, onSuccess, onCancel }: ChargeFormProps) {
       }
       
       onSuccess();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur lors de la sauvegarde:', err);
-      setError(err.message || 'Une erreur est survenue lors de la sauvegarde');
+      const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de la sauvegarde';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

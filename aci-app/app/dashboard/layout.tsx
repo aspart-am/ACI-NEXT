@@ -1,4 +1,3 @@
-import { Sidebar } from "@/app/components/Sidebar";
 import DashboardClient from '@/app/components/DashboardClient';
 
 export default function DashboardLayout({
