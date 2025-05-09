@@ -4,23 +4,26 @@ import type { CookieOptions } from '@supabase/ssr';
 
 // Crée une instance Supabase pour les composants serveur
 export function createServerSupabaseClient() {
+  const cookieStore = cookies();
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
-          return cookies().get(name)?.value ?? '';
+          const cookie = cookieStore.get(name);
+          return cookie?.value ?? '';
         },
         set(name: string, value: string, options: CookieOptions) {
-          cookies().set({
+          cookieStore.set({
             name,
             value,
             ...options,
           });
         },
-        remove(name: string, options: CookieOptions) {
-          cookies().delete(name);
+        remove(name: string, _options: CookieOptions) {
+          cookieStore.delete(name);
         },
       },
     }
