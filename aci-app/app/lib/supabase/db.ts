@@ -15,7 +15,7 @@ import type {
 } from '@/app/types';
 
 // Fonction générique pour gérer les erreurs
-const handleError = (error: any) => {
+const handleError = (error: Error) => {
   console.error('Erreur Supabase:', error);
   throw error;
 };
