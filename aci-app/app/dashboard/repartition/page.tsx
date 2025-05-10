@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { getParametresRepartitionActifs, getRevenuNet } from "@/app/lib/supabase/db";
+import { getParametresRepartitionActifs, getRevenuNet, getAssocieById } from "@/app/lib/supabase/db";
 import { calculerRepartitionSupabase } from "@/app/services/repartition";
 import { RepartitionGraph } from "@/app/components/RepartitionGraph";
-import { SaveRepartitionButton } from "@/app/components/SaveRepartitionButton";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, FileDown, FileText } from "lucide-react";
 import { ResultatRepartition, ParametresRepartition } from "@/app/types";
 import { useEffect, useState } from "react";
+import { exportToExcel, exportToCSV, generateFacture } from "@/app/services/export";
 
 export default function RepartitionPage() {
   // États pour stocker les données
@@ -120,6 +120,34 @@ export default function RepartitionPage() {
     );
   }
 
+  const handleExportExcel = () => {
+    exportToExcel(resultatRepartition);
+  };
+
+  const handleExportCSV = () => {
+    exportToCSV(resultatRepartition);
+  };
+
+  const handleGenerateFacture = async (resultat: ResultatRepartition) => {
+    try {
+      // Récupérer l'associé complet
+      const associe = await getAssocieById(resultat.associeId);
+      // Fusionner les données pour la facture
+      const dataPourFacture = {
+        ...resultat,
+        metier: associe?.description_metier,
+        adresse: associe?.adresse,
+        codePostal: associe?.code_postal,
+        numeroFacturationPS: associe?.numero_ps,
+        rpps: associe?.rpps,
+      };
+      await generateFacture(dataPourFacture);
+    } catch (error) {
+      console.error('Erreur lors de la génération de la facture:', error);
+      // TODO: Afficher une notification d'erreur à l'utilisateur
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -130,7 +158,16 @@ export default function RepartitionPage() {
           </p>
         </div>
         {resultatRepartition.length > 0 && (
-          <SaveRepartitionButton resultats={resultatRepartition} />
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExportExcel}>
+              <FileDown className="mr-2 h-4 w-4" />
+              Exporter Excel
+            </Button>
+            <Button variant="outline" onClick={handleExportCSV}>
+              <FileDown className="mr-2 h-4 w-4" />
+              Exporter CSV
+            </Button>
+          </div>
         )}
       </div>
 
@@ -232,6 +269,7 @@ export default function RepartitionPage() {
                     <TableHead className="text-right">Part projets</TableHead>
                     <TableHead className="text-right">Total</TableHead>
                     <TableHead className="text-right">Pourcentage</TableHead>
+                    <TableHead className="text-right">Facture</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -254,6 +292,16 @@ export default function RepartitionPage() {
                       <TableCell className="text-right">{formatMontant(resultat.partProjets)}</TableCell>
                       <TableCell className="text-right font-medium">{formatMontant(resultat.total)}</TableCell>
                       <TableCell className="text-right">{formatPourcentage(resultat.pourcentageTotal)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleGenerateFacture(resultat)}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Facture
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -48,6 +48,10 @@ export function AssocieForm({ associe, onSuccess, onCancel }: AssocieFormProps) 
     date_sortie: associe?.date_sortie ? associe.date_sortie.split('T')[0] : '',
     actif: associe?.actif !== undefined ? associe.actif : true,
     description_metier: associe?.description_metier || 'medecin',
+    rpps: associe?.rpps || '',
+    numero_ps: associe?.numero_ps || '',
+    adresse: associe?.adresse || '',
+    code_postal: associe?.code_postal || '',
   });
   
   const [loading, setLoading] = useState(false);
@@ -184,6 +188,48 @@ export function AssocieForm({ associe, onSuccess, onCancel }: AssocieFormProps) 
               }
             />
             <Label htmlFor="actif">Actif</Label>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="adresse">Adresse</Label>
+              <Input
+                id="adresse"
+                name="adresse"
+                value={formData.adresse}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="code_postal">Code postal</Label>
+              <Input
+                id="code_postal"
+                name="code_postal"
+                value={formData.code_postal}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="numero_ps">N° facturation PS</Label>
+              <Input
+                id="numero_ps"
+                name="numero_ps"
+                value={formData.numero_ps}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="rpps">RPPS</Label>
+              <Input
+                id="rpps"
+                name="rpps"
+                value={formData.rpps}
+                onChange={handleChange}
+              />
+            </div>
           </div>
 
           {error && (

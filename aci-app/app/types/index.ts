@@ -21,6 +21,11 @@ export interface Associe {
   description_metier: 'medecin' | 'infirmiere' | 'podologue' | 'dentiste' | 'kinesitherapeute' | 'orthesiste' | 'pharmacien';
   created_at: string;
   updated_at: string;
+  // Champs complémentaires
+  rpps?: string;
+  numero_ps?: string;
+  adresse?: string;
+  code_postal?: string;
 }
 
 // Types pour les revenus et charges

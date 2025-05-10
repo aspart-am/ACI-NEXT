@@ -98,6 +98,20 @@ export default function ProjetsPage() {
     }));
   };
 
+  // Fonction pour égaliser les pourcentages entre les participants
+  const egaliserPourcentages = (participants: {associe_id: string, pourcentage_contribution: number}[]) => {
+    if (participants.length === 0) return;
+    const pourcentageEgal = Math.floor(100 / participants.length);
+    const reste = 100 - (pourcentageEgal * participants.length);
+    
+    const nouveauxPourcentages = participants.map((p, index) => ({
+      ...p,
+      pourcentage_contribution: pourcentageEgal + (index === 0 ? reste : 0)
+    }));
+    
+    return nouveauxPourcentages;
+  };
+
   // Gérer la création d'un nouveau projet
   const handleCreateProjet = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -319,7 +333,17 @@ export default function ProjetsPage() {
       ]);
     }
   };
-  
+
+  // Gérer la modification d'un pourcentage dans un projet existant
+  const handleModifierPourcentage = (associeId: string, pourcentage: number) => {
+    const index = participationsModifiees.findIndex(p => p.associe_id === associeId);
+    if (index !== -1) {
+      const newParticipations = [...participationsModifiees];
+      newParticipations[index].pourcentage_contribution = pourcentage;
+      setParticipationsModifiees(newParticipations);
+    }
+  };
+
   // Supprimer un participant d'un projet existant
   const handleSupprimerParticipantExistant = (associeId: string) => {
     setParticipationsModifiees(
@@ -532,7 +556,7 @@ export default function ProjetsPage() {
                                 max="100"
                                 className="w-20"
                                 value={participation.pourcentage_contribution}
-                                onChange={(e) => handleAjouterParticipantExistant(
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAjouterParticipantExistant(
                                   participation.associe_id,
                                   parseInt(e.target.value) || 0
                                 )}
@@ -582,6 +606,18 @@ export default function ProjetsPage() {
                           }
                         </SelectContent>
                       </Select>
+                      {nouvellesParticipations.length > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const egalises = egaliserPourcentages(nouvellesParticipations);
+                            if (egalises) setNouvellesParticipations(egalises);
+                          }}
+                        >
+                          Égaliser les pourcentages
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -672,7 +708,7 @@ export default function ProjetsPage() {
                                   max="100"
                                   className="w-20"
                                   value={participation.pourcentage_contribution}
-                                  onChange={(e) => handleAjouterParticipantExistant(
+                                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleModifierPourcentage(
                                     participation.associe_id,
                                     parseInt(e.target.value) || 0
                                   )}
@@ -704,23 +740,37 @@ export default function ProjetsPage() {
                     )}
                     
                     <div className="pt-2 border-t">
-                      <Select
-                        onValueChange={(value) => handleAjouterParticipantExistant(value, 0)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Ajouter un participant" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {associesActifs
-                            .filter(a => !participationsModifiees.some(p => p.associe_id === a.id))
-                            .map(associe => (
-                              <SelectItem key={associe.id} value={associe.id}>
-                                {associe.prenom} {associe.nom}
-                              </SelectItem>
-                            ))
-                          }
-                        </SelectContent>
-                      </Select>
+                      <div className="flex gap-2">
+                        <Select
+                          onValueChange={(value) => handleAjouterParticipantExistant(value, 0)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Ajouter un participant" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {associesActifs
+                              .filter(a => !participationsModifiees.some(p => p.associe_id === a.id))
+                              .map(associe => (
+                                <SelectItem key={associe.id} value={associe.id}>
+                                  {associe.prenom} {associe.nom}
+                                </SelectItem>
+                              ))
+                            }
+                          </SelectContent>
+                        </Select>
+                        {participationsModifiees.length > 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              const egalises = egaliserPourcentages(participationsModifiees);
+                              if (egalises) setParticipationsModifiees(egalises);
+                            }}
+                          >
+                            Égaliser les pourcentages
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
