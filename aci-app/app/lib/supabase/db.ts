@@ -163,6 +163,16 @@ export async function updateAssociee(id: string, updates: Partial<Associe>) {
   return data;
 }
 
+export async function deleteAssocie(id: string) {
+  const { error } = await supabase
+    .from('associes')
+    .delete()
+    .eq('id', id);
+  
+  if (error) handleError(error);
+  return true;
+}
+
 // ===== REVENUS BRUTS =====
 export async function getAllRevenus() {
   const { data, error } = await supabase

@@ -9,6 +9,16 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { createAssociee, updateAssociee } from '@/app/lib/supabase/db';
 import { Associe } from '@/app/types';
 
+// Liste des descriptions métier possibles
+const DESCRIPTIONS_METIER = [
+  'medecin',
+  'infirmiere',
+  'podologue',
+  'dentiste',
+  'kinesitherapeute',
+  'orthesiste'
+];
+
 interface AssocieFormProps {
   associe?: Associe;
   onSuccess: () => void;
@@ -25,12 +35,13 @@ export function AssocieForm({ associe, onSuccess, onCancel }: AssocieFormProps) 
     date_entree: associe?.date_entree ? associe.date_entree.split('T')[0] : new Date().toISOString().split('T')[0],
     date_sortie: associe?.date_sortie ? associe.date_sortie.split('T')[0] : '',
     actif: associe?.actif !== undefined ? associe.actif : true,
+    description_metier: associe?.description_metier || 'medecin',
   });
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -98,6 +109,22 @@ export function AssocieForm({ associe, onSuccess, onCancel }: AssocieFormProps) 
                 required
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description_metier">Description métier</Label>
+            <select
+              id="description_metier"
+              name="description_metier"
+              value={formData.description_metier}
+              onChange={handleChange}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              required
+            >
+              {DESCRIPTIONS_METIER.map(metier => (
+                <option key={metier} value={metier}>{metier}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

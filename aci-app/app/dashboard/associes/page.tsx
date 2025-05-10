@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { getAllAssocies, getAssociesActifs } from "@/app/lib/supabase/db";
+import { getAllAssocies, getAssociesActifs, deleteAssocie } from "@/app/lib/supabase/db";
 import { Associe } from "@/app/types";
 import { AssocieForm } from "@/app/components/associes/AssocieForm";
 
@@ -82,6 +82,19 @@ export default function AssociesPage() {
     loadAssocies();
   };
 
+  // Gérer la suppression d'un associé
+  const handleSupprimerAssocie = async (associe: Associe) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${associe.prenom} ${associe.nom} ?`)) {
+      try {
+        await deleteAssocie(associe.id);
+        loadAssocies();
+      } catch (err) {
+        console.error("Erreur lors de la suppression de l'associé:", err);
+        setError("Impossible de supprimer l'associé");
+      }
+    }
+  };
+
   // Formater une date pour l'affichage
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "-";
@@ -134,6 +147,7 @@ export default function AssociesPage() {
                   <TableHead>Nom</TableHead>
                   <TableHead>Prénom</TableHead>
                   <TableHead>Co-gérant</TableHead>
+                  <TableHead>Description métier</TableHead>
                   <TableHead>Date d'entrée</TableHead>
                   <TableHead>Date de sortie</TableHead>
                   <TableHead>Statut</TableHead>
@@ -146,13 +160,19 @@ export default function AssociesPage() {
                     <TableCell className="font-medium">{associe.nom}</TableCell>
                     <TableCell>{associe.prenom}</TableCell>
                     <TableCell>{associe.est_co_gerant ? "Oui" : "Non"}</TableCell>
+                    <TableCell>{associe.description_metier}</TableCell>
                     <TableCell>{formatDate(associe.date_entree)}</TableCell>
                     <TableCell>{formatDate(associe.date_sortie)}</TableCell>
                     <TableCell>{associe.actif ? "Actif" : "Inactif"}</TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm" onClick={() => handleModifierAssocie(associe)}>
-                        Modifier
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleModifierAssocie(associe)}>
+                          Modifier
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => handleSupprimerAssocie(associe)}>
+                          Supprimer
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
