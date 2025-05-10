@@ -18,7 +18,7 @@ export interface Associe {
   date_entree: string;
   date_sortie?: string;
   actif: boolean;
-  description_metier: 'medecin' | 'infirmiere' | 'podologue' | 'dentiste' | 'kinesitherapeute' | 'orthesiste';
+  description_metier: 'medecin' | 'infirmiere' | 'podologue' | 'dentiste' | 'kinesitherapeute' | 'orthesiste' | 'pharmacien';
   created_at: string;
   updated_at: string;
 }

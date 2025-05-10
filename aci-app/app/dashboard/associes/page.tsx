@@ -9,6 +9,17 @@ import { getAllAssocies, getAssociesActifs, deleteAssocie } from "@/app/lib/supa
 import { Associe } from "@/app/types";
 import { AssocieForm } from "@/app/components/associes/AssocieForm";
 
+// Mapping des libellés pour l'affichage
+const LIBELLES_METIER: Record<string, string> = {
+  'medecin': 'Médecin',
+  'infirmiere': 'Infirmière',
+  'podologue': 'Podologue',
+  'dentiste': 'Dentiste',
+  'kinesitherapeute': 'Kinésithérapeute',
+  'orthesiste': 'Orthésiste',
+  'pharmacien': 'Pharmacien'
+};
+
 // Version client
 export default function AssociesPage() {
   const [associes, setAssocies] = useState<Associe[]>([]);
@@ -160,7 +171,7 @@ export default function AssociesPage() {
                     <TableCell className="font-medium">{associe.nom}</TableCell>
                     <TableCell>{associe.prenom}</TableCell>
                     <TableCell>{associe.est_co_gerant ? "Oui" : "Non"}</TableCell>
-                    <TableCell>{associe.description_metier}</TableCell>
+                    <TableCell>{LIBELLES_METIER[associe.description_metier]}</TableCell>
                     <TableCell>{formatDate(associe.date_entree)}</TableCell>
                     <TableCell>{formatDate(associe.date_sortie)}</TableCell>
                     <TableCell>{associe.actif ? "Actif" : "Inactif"}</TableCell>

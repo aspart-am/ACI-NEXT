@@ -304,17 +304,17 @@ export default function ProjetsPage() {
   // Gérer l'ajout d'un participant à un projet existant
   const handleAjouterParticipantExistant = (associeId: string, pourcentage: number) => {
     // Vérifier si l'associé est déjà dans la liste
-    const index = participationsModifiees.findIndex(p => p.associe_id === associeId);
+    const index = nouvellesParticipations.findIndex(p => p.associe_id === associeId);
     
     if (index !== -1) {
       // Mettre à jour le pourcentage si l'associé existe déjà
-      const newParticipations = [...participationsModifiees];
+      const newParticipations = [...nouvellesParticipations];
       newParticipations[index].pourcentage_contribution = pourcentage;
-      setParticipationsModifiees(newParticipations);
+      setNouvellesParticipations(newParticipations);
     } else {
       // Ajouter un nouveau participant
-      setParticipationsModifiees([
-        ...participationsModifiees,
+      setNouvellesParticipations([
+        ...nouvellesParticipations,
         { associe_id: associeId, pourcentage_contribution: pourcentage }
       ]);
     }
@@ -564,23 +564,25 @@ export default function ProjetsPage() {
                   )}
                   
                   <div className="pt-2 border-t">
-                    <Select
-                      onValueChange={(value) => handleAjouterParticipantExistant(value, 0)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Ajouter un participant" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {associesActifs
-                          .filter(a => !nouvellesParticipations.some(p => p.associe_id === a.id))
-                          .map(associe => (
-                            <SelectItem key={associe.id} value={associe.id}>
-                              {associe.prenom} {associe.nom}
-                            </SelectItem>
-                          ))
-                        }
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select
+                        onValueChange={(value) => handleAjouterParticipantExistant(value, 0)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Ajouter un participant" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {associesActifs
+                            .filter(a => !nouvellesParticipations.some(p => p.associe_id === a.id))
+                            .map(associe => (
+                              <SelectItem key={associe.id} value={associe.id}>
+                                {associe.prenom} {associe.nom}
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
               </div>

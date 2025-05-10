@@ -6,6 +6,9 @@ import Link from "next/link";
 import { getAssociesActifs, getProjetsActifs, getChargesTotales, getRevenusTotaux, getParametresRepartitionActifs } from "@/app/lib/supabase/db";
 import { useEffect, useState } from "react";
 import { Associe, ParametresRepartition } from "@/app/types";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { RepartitionGraph } from "@/app/components/RepartitionGraph";
+import { calculerRepartitionSupabase } from "@/app/services/repartition";
 
 export default function DashboardPage() {
   // États pour stocker les données
@@ -15,8 +18,8 @@ export default function DashboardPage() {
   const [totalCharges, setTotalCharges] = useState<number>(0);
   const [revenuNet, setRevenuNet] = useState<number>(0);
   const [parametres, setParametres] = useState<ParametresRepartition | null>(null);
-  const [coGerantsCount, setCoGerantsCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [resultatRepartition, setResultatRepartition] = useState<any[]>([]);
 
   // Fonction pour formater un montant en euros
   const formatMontant = (montant: number) => {
@@ -35,8 +38,6 @@ export default function DashboardPage() {
           const associesData = await getAssociesActifs();
           console.log("DashboardPage: Associés récupérés:", associesData.length);
           setAssocies(associesData);
-          const coGerants = associesData.filter(associe => associe.est_co_gerant).length;
-          setCoGerantsCount(coGerants);
         } catch (err) {
           console.error("DashboardPage: Erreur lors de la récupération des associés:", err);
         }
@@ -76,6 +77,15 @@ export default function DashboardPage() {
         } catch (err) {
           console.error("DashboardPage: Erreur lors de la récupération des paramètres:", err);
         }
+
+        try {
+          console.log("DashboardPage: Calcul de la répartition...");
+          const resultatData = await calculerRepartitionSupabase();
+          console.log("DashboardPage: Répartition calculée, nombre de résultats:", resultatData.length);
+          setResultatRepartition(resultatData);
+        } catch (err) {
+          console.error("DashboardPage: Erreur lors du calcul de la répartition:", err);
+        }
         
         console.log("DashboardPage: Données chargées avec succès");
       } catch (error) {
@@ -92,7 +102,21 @@ export default function DashboardPage() {
   useEffect(() => {
     setRevenuNet(totalRevenus - totalCharges);
   }, [totalRevenus, totalCharges]);
-  
+
+  // Préparer les données pour le graphique de répartition par métier
+  const repartitionMetiers = associes.reduce((acc, associe) => {
+    const metier = associe.description_metier || 'Non spécifié';
+    acc[metier] = (acc[metier] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const dataMetiers = Object.entries(repartitionMetiers).map(([name, value]) => ({
+    name,
+    value
+  }));
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
   return (
     <div className="space-y-6">
       <div>
@@ -107,182 +131,124 @@ export default function DashboardPage() {
           <p>Chargement du tableau de bord...</p>
         </div>
       ) : (
-        <Tabs defaultValue="apercu" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="apercu">Aperçu</TabsTrigger>
-            <TabsTrigger value="participation">Participation</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="apercu" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Revenus nets</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{formatMontant(revenuNet)}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Revenus bruts - charges
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Associés actifs</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{associes.length}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Dont {coGerantsCount} co-gérants
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Projets en cours</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{projetsActifs.length}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Projets actifs
-                  </p>
-                </CardContent>
-              </Card>
+        <div className="space-y-6">
+          {/* Graphique de répartition des revenus */}
+          {resultatRepartition.length > 0 && (
+            <div className="mb-6">
+              <RepartitionGraph resultats={resultatRepartition} />
             </div>
-            
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle>Revenus</CardTitle>
-                  <CardDescription>
-                    Détail des revenus
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Revenus bruts:</span>
-                      <span className="text-sm font-medium">{formatMontant(totalRevenus)}</span>
-                    </div>
-                    <div className="pt-2">
-                      <Link href="/dashboard/revenus" className="text-sm text-primary hover:underline">
-                        Gérer les revenus
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          )}
 
-              <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle>Charges</CardTitle>
-                  <CardDescription>
-                    Détail des charges
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Charges totales:</span>
-                      <span className="text-sm font-medium">{formatMontant(totalCharges)}</span>
-                    </div>
-                    <div className="pt-2">
-                      <Link href="/dashboard/charges" className="text-sm text-primary hover:underline">
-                        Gérer les charges
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle>Prochaines réunions</CardTitle>
-                  <CardDescription>
-                    Les réunions à venir
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Chargement des réunions...
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle>Répartition actuelle</CardTitle>
-                  <CardDescription>
-                    Distribution selon la formule configurée
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {parametres ? (
-                    <div className="space-y-1">
-                      <div className="text-sm">{parametres.pourcentage_fixe}% fixe (majoration co-gérants)</div>
-                      <div className="text-sm">{parametres.pourcentage_reunions}% réunions RCP</div>
-                      <div className="text-sm">{parametres.pourcentage_projets}% projets</div>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">
-                      Aucun paramètre configuré
-                    </div>
-                  )}
-                  <div className="pt-2">
-                    <Link href="/dashboard/repartition" className="text-sm text-primary hover:underline">
-                      Voir la répartition détaillée
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="participation" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Carte de répartition par métier */}
             <Card>
               <CardHeader>
-                <CardTitle>Participation des associés</CardTitle>
+                <CardTitle>Répartition par métier</CardTitle>
                 <CardDescription>
-                  Implication dans les réunions et projets
+                  Distribution des associés par profession
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {associes.length > 0 ? (
-                  <div className="space-y-4">
-                    <p className="text-sm">
-                      {associes.length} associés actifs participant aux activités
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Aucune donnée disponible
-                  </p>
-                )}
-                <div className="mt-4 space-y-2">
-                  <div>
-                    <Link href="/dashboard/associes" className="text-sm text-primary hover:underline">
-                      Gérer les associés
-                    </Link>
-                  </div>
-                  <div>
-                    <Link href="/dashboard/reunions" className="text-sm text-primary hover:underline">
-                      Gérer les réunions
-                    </Link>
-                  </div>
-                  <div>
-                    <Link href="/dashboard/projets" className="text-sm text-primary hover:underline">
-                      Gérer les projets
-                    </Link>
-                  </div>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={dataMetiers}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {dataMetiers.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+
+            {/* Carte des paramètres de répartition */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Critères de répartition</CardTitle>
+                <CardDescription>
+                  Distribution des revenus selon la formule configurée
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {parametres ? (
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Fixe', value: parametres.pourcentage_fixe },
+                            { name: 'Réunions', value: parametres.pourcentage_reunions },
+                            { name: 'Projets', value: parametres.pourcentage_projets }
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {[
+                            { name: 'Fixe', value: parametres.pourcentage_fixe },
+                            { name: 'Réunions', value: parametres.pourcentage_reunions },
+                            { name: 'Projets', value: parametres.pourcentage_projets }
+                          ].map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">
+                    Aucun paramètre configuré
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Paramètres de répartition */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Revenus et charges</CardTitle>
+              <CardDescription>
+                Aperçu financier
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Revenus bruts:</span>
+                  <span className="text-sm font-medium">{formatMontant(totalRevenus)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Charges totales:</span>
+                  <span className="text-sm font-medium">{formatMontant(totalCharges)}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <span className="text-sm font-bold">Revenu net:</span>
+                  <span className="text-sm font-bold">{formatMontant(revenuNet)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

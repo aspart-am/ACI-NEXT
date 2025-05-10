@@ -16,8 +16,20 @@ const DESCRIPTIONS_METIER = [
   'podologue',
   'dentiste',
   'kinesitherapeute',
-  'orthesiste'
+  'orthesiste',
+  'pharmacien'
 ];
+
+// Mapping des libellés pour l'affichage
+const LIBELLES_METIER: Record<string, string> = {
+  'medecin': 'Médecin',
+  'infirmiere': 'Infirmière',
+  'podologue': 'Podologue',
+  'dentiste': 'Dentiste',
+  'kinesitherapeute': 'Kinésithérapeute',
+  'orthesiste': 'Orthésiste',
+  'pharmacien': 'Pharmacien'
+};
 
 interface AssocieFormProps {
   associe?: Associe;
@@ -122,7 +134,7 @@ export function AssocieForm({ associe, onSuccess, onCancel }: AssocieFormProps) 
               required
             >
               {DESCRIPTIONS_METIER.map(metier => (
-                <option key={metier} value={metier}>{metier}</option>
+                <option key={metier} value={metier}>{LIBELLES_METIER[metier]}</option>
               ))}
             </select>
           </div>

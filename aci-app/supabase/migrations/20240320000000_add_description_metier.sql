@@ -1,7 +1,10 @@
--- Ajout du champ description_metier à la table associes
+-- Mise à jour de la contrainte CHECK pour la colonne description_metier
 ALTER TABLE associes
-ADD COLUMN description_metier TEXT NOT NULL DEFAULT 'medecin'
-CHECK (description_metier IN ('medecin', 'infirmiere', 'podologue', 'dentiste', 'kinesitherapeute', 'orthesiste'));
+DROP CONSTRAINT IF EXISTS associes_description_metier_check;
 
--- Mise à jour des types TypeScript
-COMMENT ON COLUMN associes.description_metier IS 'Description du métier de l''associé (medecin, infirmiere, podologue, dentiste, kinesitherapeute, orthesiste)'; 
+ALTER TABLE associes
+ADD CONSTRAINT associes_description_metier_check 
+CHECK (description_metier IN ('medecin', 'infirmiere', 'podologue', 'dentiste', 'kinesitherapeute', 'orthesiste', 'pharmacien'));
+
+-- Mise à jour du commentaire
+COMMENT ON COLUMN associes.description_metier IS 'Description du métier de l''associé (medecin, infirmiere, podologue, dentiste, kinesitherapeute, orthesiste, pharmacien)'; 
