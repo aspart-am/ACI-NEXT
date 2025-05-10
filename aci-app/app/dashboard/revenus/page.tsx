@@ -133,42 +133,42 @@ export default function RevenusPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="h-[120px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenus bruts</CardTitle>
+            <CardTitle className="text-lg font-medium">Revenus bruts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMontant(totalRevenus)}</div>
+            <div className="text-3xl font-bold">{formatMontant(totalRevenus)}</div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="h-[120px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Charges</CardTitle>
+            <CardTitle className="text-lg font-medium">Charges</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMontant(totalCharges)}</div>
+            <div className="text-3xl font-bold">{formatMontant(totalCharges)}</div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="h-[120px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenus nets</CardTitle>
+            <CardTitle className="text-lg font-medium">Revenus nets</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMontant(revenuNet)}</div>
+            <div className="text-3xl font-bold">{formatMontant(revenuNet)}</div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-4">
-          <div className="flex justify-between">
-            <CardTitle className="text-xl">Liste des revenus</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl">Liste des revenus</CardTitle>
             <Button onClick={handleAddRevenu}>Ajouter un revenu</Button>
           </div>
           
-          <Card>
+          <Card className="min-h-[400px]">
             <CardContent className="pt-6">
               {loading ? (
                 <div className="text-center py-4">Chargement des revenus...</div>
@@ -180,18 +180,18 @@ export default function RevenusPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
+                      <TableHead className="w-[120px]">Date</TableHead>
                       <TableHead>Description</TableHead>
-                      <TableHead className="text-right">Montant</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="text-right w-[120px]">Montant</TableHead>
+                      <TableHead className="w-[200px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {revenus.map((revenu) => (
                       <TableRow key={revenu.id}>
-                        <TableCell>{formatDate(revenu.date)}</TableCell>
+                        <TableCell className="font-medium">{formatDate(revenu.date)}</TableCell>
                         <TableCell>{revenu.description}</TableCell>
-                        <TableCell className="text-right">{formatMontant(revenu.montant)}</TableCell>
+                        <TableCell className="text-right font-medium">{formatMontant(revenu.montant)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button variant="outline" size="sm" onClick={() => handleEditRevenu(revenu)}>
@@ -212,12 +212,12 @@ export default function RevenusPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="flex justify-between">
-            <CardTitle className="text-xl">Liste des charges</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl">Liste des charges</CardTitle>
             <Button onClick={handleAddCharge}>Ajouter une charge</Button>
           </div>
           
-          <Card>
+          <Card className="min-h-[400px]">
             <CardContent className="pt-6">
               {loading ? (
                 <div className="text-center py-4">Chargement des charges...</div>
@@ -229,20 +229,20 @@ export default function RevenusPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Catégorie</TableHead>
+                      <TableHead className="w-[120px]">Date</TableHead>
+                      <TableHead className="w-[150px]">Catégorie</TableHead>
                       <TableHead>Description</TableHead>
-                      <TableHead className="text-right">Montant</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="text-right w-[120px]">Montant</TableHead>
+                      <TableHead className="w-[200px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {charges.map((charge) => (
                       <TableRow key={charge.id}>
-                        <TableCell>{formatDate(charge.date)}</TableCell>
+                        <TableCell className="font-medium">{formatDate(charge.date)}</TableCell>
                         <TableCell>{charge.categorie}</TableCell>
                         <TableCell>{charge.description}</TableCell>
-                        <TableCell className="text-right">{formatMontant(charge.montant)}</TableCell>
+                        <TableCell className="text-right font-medium">{formatMontant(charge.montant)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button variant="outline" size="sm" onClick={() => handleEditCharge(charge)}>
