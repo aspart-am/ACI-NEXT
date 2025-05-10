@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PlusCircle, Edit, Users, Calendar } from "lucide-react";
+import { PlusCircle, Edit, Check, X, Users, Calendar } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,11 +43,18 @@ export default function ReunionsPage() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null);
   const [reunions, setReunions] = useState<Reunion[]>([]);
+  const [loading, setLoading] = useState(true);
   const [associes, setAssocies] = useState<Associe[]>([]);
   const { toast } = useToast();
 
-  const loadReunions = useCallback(async () => {
+  useEffect(() => {
+    loadReunions();
+    loadAssocies();
+  }, []);
+
+  const loadReunions = async () => {
     try {
+      setLoading(true);
       console.log('Chargement des réunions...');
       
       const reunionsData = await getAllReunions();
@@ -94,10 +101,12 @@ export default function ReunionsPage() {
         description: "Impossible de charger les réunions. Veuillez réessayer.",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
-  }, [toast]);
+  };
 
-  const loadAssocies = useCallback(async () => {
+  const loadAssocies = async () => {
     try {
       const associesData = await getAllAssocies();
       setAssocies(associesData);
@@ -109,14 +118,7 @@ export default function ReunionsPage() {
         variant: "destructive"
       });
     }
-  }, [toast]);
-
-  useEffect(() => {
-    const loadData = async () => {
-      await Promise.all([loadReunions(), loadAssocies()]);
-    };
-    loadData();
-  }, [loadReunions, loadAssocies]);
+  };
 
   const handleCreateReunion = async (e: React.FormEvent) => {
     e.preventDefault();

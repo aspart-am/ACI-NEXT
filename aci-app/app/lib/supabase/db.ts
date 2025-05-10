@@ -13,11 +13,9 @@ import type {
   DetailRepartition,
   ResultatRepartition
 } from '@/app/types';
-import { createBrowserClient } from '@supabase/ssr';
-import { Database } from '@/app/types/supabase';
 
 // Fonction générique pour gérer les erreurs
-const handleError = (error: Error) => {
+const handleError = (error: any) => {
   console.error('Erreur Supabase:', error);
   throw error;
 };

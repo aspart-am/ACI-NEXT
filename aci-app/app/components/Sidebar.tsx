@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Users, CalendarClock, BarChart4, Settings, FileCode2, LogOut, Euro } from 'lucide-react';
+import { MoveRight, Home, Users, CalendarClock, BarChart4, Settings, FileCode2, LogOut, Euro } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {

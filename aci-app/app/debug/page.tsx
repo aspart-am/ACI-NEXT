@@ -6,7 +6,7 @@ export default function DebugIndexPage() {
     <div className="container mx-auto py-8 space-y-6">
       <h1 className="text-3xl font-bold">Outils de Débogage ACI-MSP</h1>
       <p className="text-gray-500">
-        Ces outils sont destinés aux développeurs et administrateurs pour résoudre les problèmes liés à l&apos;application.
+        Ces outils sont destinés aux développeurs et administrateurs pour résoudre les problèmes liés à l'application.
       </p>
       
       <div className="grid gap-6 md:grid-cols-2">
@@ -15,7 +15,7 @@ export default function DebugIndexPage() {
             <CardHeader>
               <CardTitle>Débogage Authentification</CardTitle>
               <CardDescription>
-                Vérifiez l&apos;état de votre session et testez l&apos;accès à la base de données
+                Vérifiez l'état de votre session et testez l'accès à la base de données
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -37,7 +37,7 @@ export default function DebugIndexPage() {
             </CardHeader>
             <CardContent>
               <p>
-                Cet outil vous permet d&apos;exécuter directement le script SQL qui configure le RLS sur toutes les tables.
+                Cet outil vous permet d'exécuter directement le script SQL qui configure le RLS sur toutes les tables.
                 Il nécessite une clé de service Supabase pour fonctionner.
               </p>
             </CardContent>
@@ -49,7 +49,7 @@ export default function DebugIndexPage() {
         <h2 className="text-lg font-semibold text-amber-800 mb-2">⚠️ Important</h2>
         <p className="text-amber-700">
           Ces outils sont destinés uniquement au développement et au débogage. Ils ne devraient pas être accessibles 
-          en production. Assurez-vous de les supprimer ou de les sécuriser avant de déployer l&apos;application.
+          en production. Assurez-vous de les supprimer ou de les sécuriser avant de déployer l'application.
         </p>
       </div>
     </div>

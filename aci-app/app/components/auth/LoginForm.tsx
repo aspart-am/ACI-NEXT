@@ -1,17 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/app/lib/supabase/client';
-import { AuthError } from '@supabase/supabase-js';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +40,9 @@ export function LoginForm() {
         console.log("Redirection vers le dashboard via window.location...");
         window.location.href = '/dashboard';
       }, 500);
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error("Erreur complète:", error);
-      const errorMessage = error instanceof AuthError ? error.message : 'Une erreur est survenue lors de la connexion';
-      setError(errorMessage);
+      setError(error.message || 'Une erreur est survenue lors de la connexion');
     } finally {
       setLoading(false);
     }

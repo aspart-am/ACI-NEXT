@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PlusCircle, Edit, Archive, AlertCircle } from "lucide-react";
+import { PlusCircle, Edit, Archive, Eye, AlertCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getProjetsActifs, getParticipationsByProjetId, createProjet, updateProjet, terminerProjet, createParticipationProjet, getAssociesActifs } from "@/app/lib/supabase/db";
+import { getAllProjets, getProjetsActifs, getProjetsTermines, getParticipationsByProjetId, createProjet, updateProjet, terminerProjet, createParticipationProjet, updateParticipationProjet, getAssociesActifs } from "@/app/lib/supabase/db";
 import { toast } from "@/components/ui/use-toast";
 import { Associe, Projet, ParticipationProjet } from "@/app/types";
 
@@ -21,6 +22,7 @@ export default function ProjetsPage() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedProjet, setSelectedProjet] = useState<Projet | null>(null);
   const [projetsActifs, setProjetsActifs] = useState<Projet[]>([]);
+  const [projetsTermines, setProjetsTermines] = useState<Projet[]>([]);
   const [associesActifs, setAssociesActifs] = useState<Associe[]>([]);
   const [participations, setParticipations] = useState<Record<string, ParticipationProjet[]>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -47,14 +49,18 @@ export default function ProjetsPage() {
         const associes = await getAssociesActifs();
         setAssociesActifs(associes);
         
-        // Charger les projets actifs
+        // Charger les projets actifs et terminés
         const projetActifs = await getProjetsActifs();
+        const projetTermines = await getProjetsTermines();
+        
         setProjetsActifs(projetActifs);
+        setProjetsTermines(projetTermines);
         
         // Charger les participations pour chaque projet
+        const tousLesProjets = [...projetActifs, ...projetTermines];
         const participationsParProjet: Record<string, ParticipationProjet[]> = {};
         
-        for (const projet of projetActifs) {
+        for (const projet of tousLesProjets) {
           const participationsProjet = await getParticipationsByProjetId(projet.id);
           participationsParProjet[projet.id] = participationsProjet;
         }
@@ -83,7 +89,7 @@ export default function ProjetsPage() {
   };
 
   // Mettre à jour les informations du nouveau projet
-  const handleChangeNouveauProjet = (field: keyof Projet, value: string | number | boolean) => {
+  const handleChangeNouveauProjet = (field: keyof Projet, value: any) => {
     setNouveauProjet(prev => ({
       ...prev,
       [field]: value
@@ -166,25 +172,27 @@ export default function ProjetsPage() {
   };
 
   // Gérer la modification d'un projet existant
-  const handleEditProjet = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditProjet = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedProjet) return;
     
     try {
-      const form = e.target as HTMLFormElement;
       // Mettre à jour le projet
       const projetMisAJour = await updateProjet(selectedProjet.id, {
-        titre: (form.elements.namedItem('titre') as HTMLInputElement).value,
-        description: (form.elements.namedItem('description') as HTMLTextAreaElement).value,
+        titre: (e.target as any).titre.value,
+        description: (e.target as any).description.value,
         poids: parseInt(poidsModifie),
-        date_debut: (form.elements.namedItem('date') as HTMLInputElement).value
+        date_debut: (e.target as any).date.value
       });
       
       // Rafraîchir les données
       if (projetMisAJour.actif) {
         const projetActifs = await getProjetsActifs();
         setProjetsActifs(projetActifs);
+      } else {
+        const projetTermines = await getProjetsTermines();
+        setProjetsTermines(projetTermines);
       }
       
       // Fermer le dialogue
@@ -212,8 +220,10 @@ export default function ProjetsPage() {
       
       // Rafraîchir les données
       const projetActifs = await getProjetsActifs();
+      const projetTermines = await getProjetsTermines();
       
       setProjetsActifs(projetActifs);
+      setProjetsTermines(projetTermines);
       
       toast({
         title: "Succès",

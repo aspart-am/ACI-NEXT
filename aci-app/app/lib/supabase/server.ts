@@ -1,31 +1,28 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import type { CookieOptions } from '@supabase/ssr';
-import { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 
 // Crée une instance Supabase pour les composants serveur
-export function createServerSupabaseClient() {
+export async function createServerSupabaseClient() {
+  const cookieStore = await cookies();
+  
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
-          const allCookies = cookies().getAll();
-          const cookie = allCookies.find((cookie: RequestCookie) => cookie.name === name);
-          return cookie?.value ?? '';
+          // Utiliser la méthode synchrone pour obtenir le cookie
+          return cookieStore.get(name)?.value ?? '';
         },
-        set(name: string, value: string, options: CookieOptions) {
-          cookies().set({
-            name,
-            value,
-            ...options,
-          });
+        set() {
+          // Dans un contexte serveur, on ne peut pas toujours modifier les cookies
+          // Cette fonction n'est pas implémentée car les cookies sont en lecture seule
         },
-        remove(name: string, _options: CookieOptions) {
-          cookies().delete(name);
+        remove() {
+          // Dans un contexte serveur, on ne peut pas toujours modifier les cookies
+          // Cette fonction n'est pas implémentée car les cookies sont en lecture seule
         },
       },
     }
   );
-} 
+}
