@@ -13,6 +13,7 @@ interface DashboardClientProps {
 export default function DashboardClient({ children }: DashboardClientProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isWideLayout, setIsWideLayout] = useState(false);
   
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -27,6 +28,10 @@ export default function DashboardClient({ children }: DashboardClientProps) {
   
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  const toggleWideLayout = () => {
+    setIsWideLayout(!isWideLayout);
   };
   
   const toggleFullscreen = () => {
@@ -76,6 +81,29 @@ export default function DashboardClient({ children }: DashboardClientProps) {
             <Button
               variant="ghost"
               size="icon"
+              onClick={toggleWideLayout}
+              title={isWideLayout ? "Layout normal" : "Layout large"}
+              className="mr-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="3" x2="21" y1="9" y2="9" />
+                <line x1="9" x2="9" y1="21" y2="9" />
+              </svg>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={toggleFullscreen}
               title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
             >
@@ -87,7 +115,11 @@ export default function DashboardClient({ children }: DashboardClientProps) {
         <main className="flex-1 overflow-auto p-6">
           <div className={cn(
             "mx-auto transition-all duration-300",
-            isCollapsed ? "max-w-[1200px]" : "max-w-[1000px]"
+            isWideLayout 
+              ? "max-w-[1600px]" 
+              : isCollapsed 
+                ? "max-w-[1400px]" 
+                : "max-w-[1200px]"
           )}>
             {children}
           </div>

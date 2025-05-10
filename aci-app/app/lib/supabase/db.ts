@@ -531,6 +531,25 @@ export async function terminerProjet(id: string) {
   return data;
 }
 
+export async function deleteProjet(id: string) {
+  // D'abord supprimer toutes les participations associées
+  const { error: errorParticipations } = await supabase
+    .from('participations_projets')
+    .delete()
+    .eq('projet_id', id);
+  
+  if (errorParticipations) handleError(errorParticipations);
+
+  // Ensuite supprimer le projet
+  const { error } = await supabase
+    .from('projets')
+    .delete()
+    .eq('id', id);
+  
+  if (error) handleError(error);
+  return true;
+}
+
 // ===== PARTICIPATIONS PROJETS =====
 export async function getParticipationsByProjetId(projetId: string) {
   const { data, error } = await supabase

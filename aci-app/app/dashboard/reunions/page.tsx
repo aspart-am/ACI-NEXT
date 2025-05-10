@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PlusCircle, Edit, Check, X, Users, Calendar } from "lucide-react";
+import { PlusCircle, Edit, Check, X, Users, Calendar, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getAllReunions, getParticipationsByReunionId, createReunion, updateReunion, createParticipationReunion, updateParticipationReunion, getAllAssocies } from "@/app/lib/supabase/db";
+import { getAllReunions, getParticipationsByReunionId, createReunion, updateReunion, deleteReunion, createParticipationReunion, updateParticipationReunion, getAllAssocies } from "@/app/lib/supabase/db";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -281,6 +281,30 @@ export default function ReunionsPage() {
     }
   };
 
+  // Supprimer une réunion
+  const handleDeleteReunion = async (reunion: Reunion) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette réunion ? Cette action est irréversible.")) {
+      return;
+    }
+
+    try {
+      await deleteReunion(reunion.id);
+      await loadReunions();
+      
+      toast({
+        title: "Succès",
+        description: "La réunion a été supprimée avec succès"
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la réunion:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer la réunion",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Fonction pour formater la date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -359,14 +383,16 @@ export default function ReunionsPage() {
                     <TableCell>{formatDate(reunion.date)}</TableCell>
                     <TableCell>{reunion.duree} min</TableCell>
                     <TableCell>
-                      <div className="flex -space-x-2">
-                        {reunion.participants.map((participant) => (
-                          <Avatar key={participant.id} className="border-2 border-background h-8 w-8">
-                            <AvatarFallback className={participant.present ? "bg-primary" : "bg-muted"}>
-                              {getInitiales(participant.nom, participant.prenom)}
-                            </AvatarFallback>
-                          </Avatar>
-                        ))}
+                      <div className="flex flex-wrap -space-x-2 max-w-[400px]">
+                        {reunion.participants
+                          .filter(participant => participant.present)
+                          .map((participant) => (
+                            <Avatar key={participant.id} className="border-2 border-background h-8 w-8">
+                              <AvatarFallback className="bg-primary text-primary-foreground">
+                                {getInitiales(participant.nom, participant.prenom)}
+                              </AvatarFallback>
+                            </Avatar>
+                          ))}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -386,6 +412,15 @@ export default function ReunionsPage() {
                         >
                           <Users className="h-4 w-4 mr-1" />
                           Présences
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-red-700 border-red-200 hover:bg-red-50"
+                          onClick={() => handleDeleteReunion(reunion)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Supprimer
                         </Button>
                       </div>
                     </TableCell>
@@ -515,7 +550,7 @@ export default function ReunionsPage() {
       {/* Dialogue de gestion des présences */}
       {selectedReunion && (
         <Dialog open={showPresenceDialog} onOpenChange={setShowPresenceDialog}>
-          <DialogContent>
+          <DialogContent className="w-[800px] min-w-[600px] !max-w-none">
             <DialogHeader>
               <DialogTitle>Gestion des présences</DialogTitle>
               <DialogDescription>
@@ -528,37 +563,59 @@ export default function ReunionsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Participant</TableHead>
+                        <TableHead className="w-1/2">Participant</TableHead>
+                        <TableHead className="w-16 text-center">Présent</TableHead>
+                        <TableHead className="w-1/2">Participant</TableHead>
                         <TableHead className="w-16 text-center">Présent</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {associes.map((associe) => {
-                        const participation = selectedReunion.participants.find(
-                          p => p.id === associe.id
-                        );
-                        return (
-                          <TableRow key={associe.id}>
-                            <TableCell>
+                      {Array.from({ length: Math.ceil(associes.length / 2) }).map((_, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            {associes[index] && (
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                   <AvatarFallback>
-                                    {getInitiales(associe.nom, associe.prenom)}
+                                    {getInitiales(associes[index].nom, associes[index].prenom)}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div>{associe.prenom} {associe.nom}</div>
+                                <div>{associes[index].prenom} {associes[index].nom}</div>
                               </div>
-                            </TableCell>
-                            <TableCell className="text-center">
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {associes[index] && (
                               <Checkbox 
-                                id={`presence-${associe.id}`}
-                                name={`presence-${associe.id}`}
-                                defaultChecked={participation?.present || false}
+                                id={`presence-${associes[index].id}`}
+                                name={`presence-${associes[index].id}`}
+                                defaultChecked={selectedReunion.participants.find(p => p.id === associes[index].id)?.present || false}
                               />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {associes[index + Math.ceil(associes.length / 2)] && (
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarFallback>
+                                    {getInitiales(associes[index + Math.ceil(associes.length / 2)].nom, associes[index + Math.ceil(associes.length / 2)].prenom)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>{associes[index + Math.ceil(associes.length / 2)].prenom} {associes[index + Math.ceil(associes.length / 2)].nom}</div>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {associes[index + Math.ceil(associes.length / 2)] && (
+                              <Checkbox 
+                                id={`presence-${associes[index + Math.ceil(associes.length / 2)].id}`}
+                                name={`presence-${associes[index + Math.ceil(associes.length / 2)].id}`}
+                                defaultChecked={selectedReunion.participants.find(p => p.id === associes[index + Math.ceil(associes.length / 2)].id)?.present || false}
+                              />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </div>

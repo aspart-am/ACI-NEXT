@@ -5,14 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PlusCircle, Edit, Archive, Eye, AlertCircle } from "lucide-react";
+import { PlusCircle, Edit, Eye, AlertCircle, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getAllProjets, getProjetsActifs, getProjetsTermines, getParticipationsByProjetId, createProjet, updateProjet, terminerProjet, createParticipationProjet, updateParticipationProjet, getAssociesActifs } from "@/app/lib/supabase/db";
+import { getAllProjets, getProjetsActifs, getProjetsTermines, getParticipationsByProjetId, createProjet, updateProjet, terminerProjet, createParticipationProjet, updateParticipationProjet, getAssociesActifs, deleteProjet } from "@/app/lib/supabase/db";
+import { supabase } from "@/app/lib/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Associe, Projet, ParticipationProjet } from "@/app/types";
 
@@ -37,6 +38,7 @@ export default function ProjetsPage() {
     actif: true
   });
   const [nouvellesParticipations, setNouvellesParticipations] = useState<{associe_id: string, pourcentage_contribution: number}[]>([]);
+  const [participationsModifiees, setParticipationsModifiees] = useState<{associe_id: string, pourcentage_contribution: number}[]>([]);
 
   useEffect(() => {
     // Charger les données depuis la base de données
@@ -178,6 +180,21 @@ export default function ProjetsPage() {
     if (!selectedProjet) return;
     
     try {
+      // Vérifier que les pourcentages totalisent 100%
+      const totalPourcentage = participationsModifiees.reduce(
+        (sum, p) => sum + p.pourcentage_contribution, 
+        0
+      );
+      
+      if (totalPourcentage !== 100) {
+        toast({
+          title: "Erreur de validation",
+          description: `La somme des pourcentages doit être de 100% (actuellement ${totalPourcentage}%)`,
+          variant: "destructive"
+        });
+        return;
+      }
+
       // Mettre à jour le projet
       const projetMisAJour = await updateProjet(selectedProjet.id, {
         titre: (e.target as any).titre.value,
@@ -185,15 +202,42 @@ export default function ProjetsPage() {
         poids: parseInt(poidsModifie),
         date_debut: (e.target as any).date.value
       });
+
+      // Supprimer toutes les participations existantes
+      const participationsExistantes = participations[selectedProjet.id] || [];
+      await Promise.all(
+        participationsExistantes.map(p =>
+          supabase
+            .from('participations_projets')
+            .delete()
+            .eq('id', p.id)
+        )
+      );
+
+      // Créer les nouvelles participations
+      await Promise.all(
+        participationsModifiees.map(p =>
+          createParticipationProjet({
+            projet_id: selectedProjet.id,
+            associe_id: p.associe_id,
+            pourcentage_contribution: p.pourcentage_contribution
+          })
+        )
+      );
       
       // Rafraîchir les données
-      if (projetMisAJour.actif) {
-        const projetActifs = await getProjetsActifs();
-        setProjetsActifs(projetActifs);
-      } else {
-        const projetTermines = await getProjetsTermines();
-        setProjetsTermines(projetTermines);
-      }
+      const projetActifs = await getProjetsActifs();
+      const projetTermines = await getProjetsTermines();
+      
+      setProjetsActifs(projetActifs);
+      setProjetsTermines(projetTermines);
+
+      // Mettre à jour les participations
+      const participationsProjet = await getParticipationsByProjetId(selectedProjet.id);
+      setParticipations(prev => ({
+        ...prev,
+        [selectedProjet.id]: participationsProjet
+      }));
       
       // Fermer le dialogue
       setShowEditDialog(false);
@@ -213,10 +257,14 @@ export default function ProjetsPage() {
     }
   };
 
-  // Archiver un projet (mettre fin)
-  const handleArchiverProjet = async (projet: Projet) => {
+  // Supprimer un projet
+  const handleDeleteProjet = async (projet: Projet) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.")) {
+      return;
+    }
+
     try {
-      await terminerProjet(projet.id);
+      await deleteProjet(projet.id);
       
       // Rafraîchir les données
       const projetActifs = await getProjetsActifs();
@@ -227,13 +275,13 @@ export default function ProjetsPage() {
       
       toast({
         title: "Succès",
-        description: "Le projet a été archivé avec succès",
+        description: "Le projet a été supprimé avec succès",
       });
     } catch (err) {
-      console.error("Erreur lors de l'archivage du projet:", err);
+      console.error("Erreur lors de la suppression du projet:", err);
       toast({
         title: "Erreur",
-        description: "Impossible d'archiver le projet. Veuillez réessayer.",
+        description: "Impossible de supprimer le projet. Veuillez réessayer.",
         variant: "destructive"
       });
     }
@@ -242,32 +290,40 @@ export default function ProjetsPage() {
   const openEditDialog = (projet: Projet) => {
     setSelectedProjet(projet);
     setPoidsModifie(projet.poids.toString());
+    // Initialiser les participations modifiées avec les participations existantes
+    const participationsExistantes = participations[projet.id] || [];
+    setParticipationsModifiees(
+      participationsExistantes.map(p => ({
+        associe_id: p.associe_id,
+        pourcentage_contribution: p.pourcentage_contribution
+      }))
+    );
     setShowEditDialog(true);
   };
   
-  // Gérer l'ajout d'un participant à un nouveau projet
-  const handleAjouterParticipant = (associeId: string, pourcentage: number) => {
+  // Gérer l'ajout d'un participant à un projet existant
+  const handleAjouterParticipantExistant = (associeId: string, pourcentage: number) => {
     // Vérifier si l'associé est déjà dans la liste
-    const index = nouvellesParticipations.findIndex(p => p.associe_id === associeId);
+    const index = participationsModifiees.findIndex(p => p.associe_id === associeId);
     
     if (index !== -1) {
       // Mettre à jour le pourcentage si l'associé existe déjà
-      const newParticipations = [...nouvellesParticipations];
+      const newParticipations = [...participationsModifiees];
       newParticipations[index].pourcentage_contribution = pourcentage;
-      setNouvellesParticipations(newParticipations);
+      setParticipationsModifiees(newParticipations);
     } else {
       // Ajouter un nouveau participant
-      setNouvellesParticipations([
-        ...nouvellesParticipations,
+      setParticipationsModifiees([
+        ...participationsModifiees,
         { associe_id: associeId, pourcentage_contribution: pourcentage }
       ]);
     }
   };
   
-  // Supprimer un participant d'un nouveau projet
-  const handleSupprimerParticipant = (associeId: string) => {
-    setNouvellesParticipations(
-      nouvellesParticipations.filter(p => p.associe_id !== associeId)
+  // Supprimer un participant d'un projet existant
+  const handleSupprimerParticipantExistant = (associeId: string) => {
+    setParticipationsModifiees(
+      participationsModifiees.filter(p => p.associe_id !== associeId)
     );
   };
 
@@ -377,11 +433,11 @@ export default function ProjetsPage() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="text-amber-700 border-amber-200 hover:bg-amber-50"
-                        onClick={() => handleArchiverProjet(projet)}
+                        className="text-red-700 border-red-200 hover:bg-red-50"
+                        onClick={() => handleDeleteProjet(projet)}
                       >
-                        <Archive className="h-4 w-4 mr-1" />
-                        Archiver
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Supprimer
                       </Button>
                     </div>
                   </TableCell>
@@ -476,7 +532,7 @@ export default function ProjetsPage() {
                                 max="100"
                                 className="w-20"
                                 value={participation.pourcentage_contribution}
-                                onChange={(e) => handleAjouterParticipant(
+                                onChange={(e) => handleAjouterParticipantExistant(
                                   participation.associe_id,
                                   parseInt(e.target.value) || 0
                                 )}
@@ -486,7 +542,7 @@ export default function ProjetsPage() {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleSupprimerParticipant(participation.associe_id)}
+                                onClick={() => handleSupprimerParticipantExistant(participation.associe_id)}
                               >
                                 ✕
                               </Button>
@@ -509,7 +565,7 @@ export default function ProjetsPage() {
                   
                   <div className="pt-2 border-t">
                     <Select
-                      onValueChange={(value) => handleAjouterParticipant(value, 0)}
+                      onValueChange={(value) => handleAjouterParticipantExistant(value, 0)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Ajouter un participant" />
@@ -548,7 +604,7 @@ export default function ProjetsPage() {
 
       {/* Dialogue de modification de projet */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Modifier le projet</DialogTitle>
             <DialogDescription>
@@ -557,7 +613,7 @@ export default function ProjetsPage() {
           </DialogHeader>
           {selectedProjet && (
             <form onSubmit={handleEditProjet}>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-6 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="titre-edit">Titre du projet</Label>
                   <Input id="titre-edit" name="titre" defaultValue={selectedProjet.titre} required />
@@ -585,12 +641,100 @@ export default function ProjetsPage() {
                     </Select>
                   </div>
                 </div>
+
+                <div className="grid gap-2">
+                  <Label>Participants*</Label>
+                  <div className="border rounded-md p-4 space-y-4">
+                    {participationsModifiees.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-2">
+                        Aucun participant sélectionné
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {participationsModifiees.map((participation) => {
+                          const associe = associesActifs.find(a => a.id === participation.associe_id);
+                          return (
+                            <div key={participation.associe_id} className="flex items-center justify-between gap-2 p-2 bg-muted/50 rounded-md">
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarFallback className="bg-primary text-primary-foreground">
+                                    {associe && getInitiales(associe.nom, associe.prenom)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span>{associe?.prenom} {associe?.nom}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="100"
+                                  className="w-20"
+                                  value={participation.pourcentage_contribution}
+                                  onChange={(e) => handleAjouterParticipantExistant(
+                                    participation.associe_id,
+                                    parseInt(e.target.value) || 0
+                                  )}
+                                />
+                                <span>%</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleSupprimerParticipantExistant(participation.associe_id)}
+                                >
+                                  ✕
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        <div className="text-sm text-muted-foreground flex justify-between">
+                          <span>Total</span>
+                          <span>
+                            {participationsModifiees.reduce((sum, p) => sum + p.pourcentage_contribution, 0)}%
+                            {participationsModifiees.reduce((sum, p) => sum + p.pourcentage_contribution, 0) !== 100 &&
+                              <span className="text-destructive ml-2">(doit être 100%)</span>
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="pt-2 border-t">
+                      <Select
+                        onValueChange={(value) => handleAjouterParticipantExistant(value, 0)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Ajouter un participant" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {associesActifs
+                            .filter(a => !participationsModifiees.some(p => p.associe_id === a.id))
+                            .map(associe => (
+                              <SelectItem key={associe.id} value={associe.id}>
+                                {associe.prenom} {associe.nom}
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
                   Annuler
                 </Button>
-                <Button type="submit">Enregistrer</Button>
+                <Button type="submit" disabled={
+                  !selectedProjet.titre || 
+                  !selectedProjet.date_debut || 
+                  participationsModifiees.length === 0 ||
+                  participationsModifiees.reduce((sum, p) => sum + p.pourcentage_contribution, 0) !== 100
+                }>
+                  Enregistrer
+                </Button>
               </DialogFooter>
             </form>
           )}
