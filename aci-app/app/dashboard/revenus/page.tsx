@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { getAllRevenus, getAllCharges, getRevenusTotaux, getChargesTotales } from "@/app/lib/supabase/db";
+import { getAllRevenus, getAllCharges, getRevenusTotaux, getChargesTotales, deleteRevenu, deleteCharge } from "@/app/lib/supabase/db";
 import { RevenuBrut, Charge } from "@/app/types";
 import { RevenuForm } from "@/app/components/revenus/RevenuForm";
 import { ChargeForm } from "@/app/components/charges/ChargeForm";
@@ -65,6 +65,18 @@ export default function RevenusPage() {
     setIsRevenuFormOpen(true);
   };
 
+  const handleDeleteRevenu = async (revenu: RevenuBrut) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce revenu ?')) {
+      try {
+        await deleteRevenu(revenu.id);
+        loadData();
+      } catch (err) {
+        console.error("Erreur lors de la suppression du revenu:", err);
+        setError("Impossible de supprimer le revenu");
+      }
+    }
+  };
+
   const handleRevenuSuccess = () => {
     setIsRevenuFormOpen(false);
     loadData();
@@ -79,6 +91,18 @@ export default function RevenusPage() {
   const handleEditCharge = (charge: Charge) => {
     setSelectedCharge(charge);
     setIsChargeFormOpen(true);
+  };
+
+  const handleDeleteCharge = async (charge: Charge) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette charge ?')) {
+      try {
+        await deleteCharge(charge.id);
+        loadData();
+      } catch (err) {
+        console.error("Erreur lors de la suppression de la charge:", err);
+        setError("Impossible de supprimer la charge");
+      }
+    }
   };
 
   const handleChargeSuccess = () => {
@@ -169,9 +193,14 @@ export default function RevenusPage() {
                         <TableCell>{revenu.description}</TableCell>
                         <TableCell className="text-right">{formatMontant(revenu.montant)}</TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm" onClick={() => handleEditRevenu(revenu)}>
-                            Modifier
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => handleEditRevenu(revenu)}>
+                              Modifier
+                            </Button>
+                            <Button variant="destructive" size="sm" onClick={() => handleDeleteRevenu(revenu)}>
+                              Supprimer
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -215,9 +244,14 @@ export default function RevenusPage() {
                         <TableCell>{charge.description}</TableCell>
                         <TableCell className="text-right">{formatMontant(charge.montant)}</TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm" onClick={() => handleEditCharge(charge)}>
-                            Modifier
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => handleEditCharge(charge)}>
+                              Modifier
+                            </Button>
+                            <Button variant="destructive" size="sm" onClick={() => handleDeleteCharge(charge)}>
+                              Supprimer
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
