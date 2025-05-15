@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PlusCircle, Edit, Eye, AlertCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Edit, Eye, AlertCircle, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -704,29 +704,24 @@ export default function ProjetsPage() {
                               <div className="flex items-center gap-2">
                                 <Input
                                   type="number"
-                                  min="1"
+                                  min="0"
                                   max="100"
-                                  className="w-20"
                                   value={participation.pourcentage_contribution}
-                                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleModifierPourcentage(
-                                    participation.associe_id,
-                                    parseInt(e.target.value) || 0
-                                  )}
+                                  onChange={(e) => handleModifierPourcentage(participation.associe_id, parseInt(e.target.value) || 0)}
+                                  className="w-20"
                                 />
                                 <span>%</span>
                                 <Button
-                                  type="button"
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleSupprimerParticipantExistant(participation.associe_id)}
                                 >
-                                  ✕
+                                  <X className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
                           );
                         })}
-                        
                         <div className="text-sm text-muted-foreground flex justify-between">
                           <span>Total</span>
                           <span>
@@ -738,39 +733,51 @@ export default function ProjetsPage() {
                         </div>
                       </div>
                     )}
-                    
-                    <div className="pt-2 border-t">
-                      <div className="flex gap-2">
-                        <Select
-                          onValueChange={(value) => handleAjouterParticipantExistant(value, 0)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Ajouter un participant" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {associesActifs
-                              .filter(a => !participationsModifiees.some(p => p.associe_id === a.id))
-                              .map(associe => (
-                                <SelectItem key={associe.id} value={associe.id}>
-                                  {associe.prenom} {associe.nom}
-                                </SelectItem>
-                              ))
+                    <div className="flex items-center gap-2">
+                      <Select
+                        onValueChange={(value) => {
+                          const associeId = value;
+                          const associe = associesActifs.find(a => a.id === associeId);
+                          if (associe && !participationsModifiees.find(p => p.associe_id === associeId)) {
+                            const newParticipations = [
+                              ...participationsModifiees,
+                              { associe_id: associeId, pourcentage_contribution: 0 }
+                            ];
+                            setParticipationsModifiees(newParticipations);
+                            
+                            // Égaliser les pourcentages après l'ajout
+                            const egalises = egaliserPourcentages(newParticipations);
+                            if (egalises) {
+                              setParticipationsModifiees(egalises);
                             }
-                          </SelectContent>
-                        </Select>
-                        {participationsModifiees.length > 0 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              const egalises = egaliserPourcentages(participationsModifiees);
-                              if (egalises) setParticipationsModifiees(egalises);
-                            }}
-                          >
-                            Égaliser les pourcentages
-                          </Button>
-                        )}
-                      </div>
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Ajouter un participant" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {associesActifs
+                            .filter(associe => !participationsModifiees.find(p => p.associe_id === associe.id))
+                            .map(associe => (
+                              <SelectItem key={associe.id} value={associe.id}>
+                                {associe.prenom} {associe.nom}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      {participationsModifiees.length > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const egalises = egaliserPourcentages(participationsModifiees);
+                            if (egalises) setParticipationsModifiees(egalises);
+                          }}
+                        >
+                          Égaliser les pourcentages
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
