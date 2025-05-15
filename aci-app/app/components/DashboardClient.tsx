@@ -2,7 +2,7 @@
 
 import { Sidebar } from "@/app/components/Sidebar";
 import { Button } from "@/components/ui/button";
-import { Maximize, Minimize } from "lucide-react";
+import { Maximize, Minimize, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,7 @@ export default function DashboardClient({ children }: DashboardClientProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isWideLayout, setIsWideLayout] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -24,6 +25,17 @@ export default function DashboardClient({ children }: DashboardClientProps) {
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
   
   const toggleSidebar = () => {
@@ -48,32 +60,31 @@ export default function DashboardClient({ children }: DashboardClientProps) {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar isCollapsed={isCollapsed} onToggle={toggleSidebar} />
+      {/* Sidebar pour desktop */}
+      <div className="hidden lg:block">
+        <Sidebar isCollapsed={isCollapsed} onToggle={toggleSidebar} />
+      </div>
+      
+      {/* Menu mobile */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="fixed inset-y-0 left-0 w-[250px] bg-sidebar">
+            <Sidebar isCollapsed={false} onToggle={() => setIsMobileMenuOpen(false)} />
+          </div>
+        </div>
+      )}
       
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 items-center border-b bg-background px-6">
+        <header className="flex h-16 items-center border-b bg-background px-4 lg:px-6">
           <div className="flex items-center">
             <Button
               variant="ghost"
               size="icon"
-              onClick={toggleSidebar}
+              onClick={() => setIsMobileMenuOpen(true)}
               className="mr-4 lg:hidden"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="4" x2="20" y1="12" y2="12" />
-                <line x1="4" x2="20" y1="6" y2="6" />
-                <line x1="4" x2="20" y1="18" y2="18" />
-              </svg>
+              <Menu className="h-6 w-6" />
             </Button>
             <div className="text-xl font-bold">ACI Santé</div>
           </div>
@@ -83,7 +94,7 @@ export default function DashboardClient({ children }: DashboardClientProps) {
               size="icon"
               onClick={toggleWideLayout}
               title={isWideLayout ? "Layout normal" : "Layout large"}
-              className="mr-2"
+              className="hidden lg:flex mr-2"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -106,13 +117,14 @@ export default function DashboardClient({ children }: DashboardClientProps) {
               size="icon"
               onClick={toggleFullscreen}
               title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+              className="hidden lg:flex"
             >
               {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
             </Button>
           </div>
         </header>
         
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
           <div className={cn(
             "mx-auto transition-all duration-300",
             isWideLayout 
