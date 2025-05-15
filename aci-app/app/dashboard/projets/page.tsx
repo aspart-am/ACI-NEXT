@@ -474,7 +474,7 @@ export default function ProjetsPage() {
 
       {/* Dialogue de création de projet */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl">
+        <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Créer un nouveau projet</DialogTitle>
             <DialogDescription>
@@ -628,7 +628,7 @@ export default function ProjetsPage() {
 
       {/* Dialogue de modification de projet */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl">
+        <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Modifier le projet</DialogTitle>
             <DialogDescription>

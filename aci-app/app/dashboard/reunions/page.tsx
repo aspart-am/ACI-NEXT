@@ -442,7 +442,7 @@ export default function ReunionsPage() {
 
       {/* Dialogue de création de réunion */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl">
+        <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Créer une nouvelle réunion</DialogTitle>
             <DialogDescription>
@@ -483,7 +483,7 @@ export default function ReunionsPage() {
       {/* Dialogue de modification de réunion */}
       {selectedReunion && (
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl">
+          <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Modifier la réunion</DialogTitle>
               <DialogDescription>
@@ -550,7 +550,7 @@ export default function ReunionsPage() {
       {/* Dialogue de gestion des présences */}
       {selectedReunion && (
         <Dialog open={showPresenceDialog} onOpenChange={setShowPresenceDialog}>
-          <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl">
+          <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Gérer les présences</DialogTitle>
               <DialogDescription>
