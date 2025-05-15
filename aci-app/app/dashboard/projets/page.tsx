@@ -474,7 +474,7 @@ export default function ProjetsPage() {
 
       {/* Dialogue de création de projet */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Créer un nouveau projet</DialogTitle>
             <DialogDescription>
@@ -482,7 +482,7 @@ export default function ProjetsPage() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateProjet}>
-            <div className="grid gap-6 py-4">
+            <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="titre">Titre du projet*</Label>
                 <Input 
@@ -502,7 +502,7 @@ export default function ProjetsPage() {
                   onChange={(e) => handleChangeNouveauProjet('description', e.target.value)}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="date">Date de début*</Label>
                   <Input 
@@ -527,10 +527,30 @@ export default function ProjetsPage() {
                   </Select>
                 </div>
               </div>
-              
+
               <div className="grid gap-2">
                 <Label>Participants*</Label>
                 <div className="border rounded-md p-4 space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="associe">Ajouter un participant</Label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Select onValueChange={(value) => handleAjouterParticipantExistant(value, 0)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez un associé" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {associesActifs
+                            .filter(associe => !nouvellesParticipations.some(p => p.associe_id === associe.id))
+                            .map(associe => (
+                              <SelectItem key={associe.id} value={associe.id}>
+                                {associe.prenom} {associe.nom}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
                   {nouvellesParticipations.length === 0 ? (
                     <div className="text-center text-muted-foreground py-2">
                       Aucun participant sélectionné
@@ -540,7 +560,7 @@ export default function ProjetsPage() {
                       {nouvellesParticipations.map((participation) => {
                         const associe = associesActifs.find(a => a.id === participation.associe_id);
                         return (
-                          <div key={participation.associe_id} className="flex items-center justify-between gap-2 p-2 bg-muted/50 rounded-md">
+                          <div key={participation.associe_id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 bg-muted/50 rounded-md">
                             <div className="flex items-center gap-2">
                               <Avatar className="h-8 w-8">
                                 <AvatarFallback className="bg-primary text-primary-foreground">
@@ -549,12 +569,12 @@ export default function ProjetsPage() {
                               </Avatar>
                               <span>{associe?.prenom} {associe?.nom}</span>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
                               <Input
                                 type="number"
                                 min="1"
                                 max="100"
-                                className="w-20"
+                                className="w-full sm:w-20"
                                 value={participation.pourcentage_contribution}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAjouterParticipantExistant(
                                   participation.associe_id,
@@ -586,45 +606,11 @@ export default function ProjetsPage() {
                       </div>
                     </div>
                   )}
-                  
-                  <div className="pt-2 border-t">
-                    <div className="flex gap-2">
-                      <Select
-                        onValueChange={(value) => handleAjouterParticipantExistant(value, 0)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Ajouter un participant" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {associesActifs
-                            .filter(a => !nouvellesParticipations.some(p => p.associe_id === a.id))
-                            .map(associe => (
-                              <SelectItem key={associe.id} value={associe.id}>
-                                {associe.prenom} {associe.nom}
-                              </SelectItem>
-                            ))
-                          }
-                        </SelectContent>
-                      </Select>
-                      {nouvellesParticipations.length > 0 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            const egalises = egaliserPourcentages(nouvellesParticipations);
-                            if (egalises) setNouvellesParticipations(egalises);
-                          }}
-                        >
-                          Égaliser les pourcentages
-                        </Button>
-                      )}
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)} className="w-full sm:w-auto">
                 Annuler
               </Button>
               <Button type="submit" disabled={
@@ -632,7 +618,7 @@ export default function ProjetsPage() {
                 !nouveauProjet.date_debut || 
                 nouvellesParticipations.length === 0 ||
                 nouvellesParticipations.reduce((sum, p) => sum + p.pourcentage_contribution, 0) !== 100
-              }>
+              } className="w-full sm:w-auto">
                 Créer le projet
               </Button>
             </DialogFooter>
@@ -642,7 +628,7 @@ export default function ProjetsPage() {
 
       {/* Dialogue de modification de projet */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Modifier le projet</DialogTitle>
             <DialogDescription>
@@ -651,7 +637,7 @@ export default function ProjetsPage() {
           </DialogHeader>
           {selectedProjet && (
             <form onSubmit={handleEditProjet}>
-              <div className="grid gap-6 py-4">
+              <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="titre-edit">Titre du projet</Label>
                   <Input id="titre-edit" name="titre" defaultValue={selectedProjet.titre} required />
@@ -660,7 +646,7 @@ export default function ProjetsPage() {
                   <Label htmlFor="description-edit">Description</Label>
                   <Textarea id="description-edit" name="description" defaultValue={selectedProjet.description || ""} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="date-edit">Date de début</Label>
                     <Input id="date-edit" name="date" type="date" defaultValue={selectedProjet.date_debut} required />
@@ -692,7 +678,7 @@ export default function ProjetsPage() {
                         {participationsModifiees.map((participation) => {
                           const associe = associesActifs.find(a => a.id === participation.associe_id);
                           return (
-                            <div key={participation.associe_id} className="flex items-center justify-between gap-2 p-2 bg-muted/50 rounded-md">
+                            <div key={participation.associe_id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 bg-muted/50 rounded-md">
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                   <AvatarFallback className="bg-primary text-primary-foreground">
@@ -701,14 +687,14 @@ export default function ProjetsPage() {
                                 </Avatar>
                                 <span>{associe?.prenom} {associe?.nom}</span>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 w-full sm:w-auto">
                                 <Input
                                   type="number"
                                   min="0"
                                   max="100"
                                   value={participation.pourcentage_contribution}
                                   onChange={(e) => handleModifierPourcentage(participation.associe_id, parseInt(e.target.value) || 0)}
-                                  className="w-20"
+                                  className="w-full sm:w-20"
                                 />
                                 <span>%</span>
                                 <Button
@@ -733,57 +719,11 @@ export default function ProjetsPage() {
                         </div>
                       </div>
                     )}
-                    <div className="flex items-center gap-2">
-                      <Select
-                        onValueChange={(value) => {
-                          const associeId = value;
-                          const associe = associesActifs.find(a => a.id === associeId);
-                          if (associe && !participationsModifiees.find(p => p.associe_id === associeId)) {
-                            const newParticipations = [
-                              ...participationsModifiees,
-                              { associe_id: associeId, pourcentage_contribution: 0 }
-                            ];
-                            setParticipationsModifiees(newParticipations);
-                            
-                            // Égaliser les pourcentages après l'ajout
-                            const egalises = egaliserPourcentages(newParticipations);
-                            if (egalises) {
-                              setParticipationsModifiees(egalises);
-                            }
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Ajouter un participant" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {associesActifs
-                            .filter(associe => !participationsModifiees.find(p => p.associe_id === associe.id))
-                            .map(associe => (
-                              <SelectItem key={associe.id} value={associe.id}>
-                                {associe.prenom} {associe.nom}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                      {participationsModifiees.length > 0 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            const egalises = egaliserPourcentages(participationsModifiees);
-                            if (egalises) setParticipationsModifiees(egalises);
-                          }}
-                        >
-                          Égaliser les pourcentages
-                        </Button>
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} className="w-full sm:w-auto">
                   Annuler
                 </Button>
                 <Button type="submit" disabled={
@@ -791,7 +731,7 @@ export default function ProjetsPage() {
                   !selectedProjet.date_debut || 
                   participationsModifiees.length === 0 ||
                   participationsModifiees.reduce((sum, p) => sum + p.pourcentage_contribution, 0) !== 100
-                }>
+                } className="w-full sm:w-auto">
                   Enregistrer
                 </Button>
               </DialogFooter>

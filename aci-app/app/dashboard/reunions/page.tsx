@@ -442,7 +442,7 @@ export default function ReunionsPage() {
 
       {/* Dialogue de création de réunion */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Créer une nouvelle réunion</DialogTitle>
             <DialogDescription>
@@ -459,7 +459,7 @@ export default function ReunionsPage() {
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" name="description" placeholder="Description et objectifs de la réunion" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="date">Date et heure</Label>
                   <Input id="date" name="date" type="datetime-local" required />
@@ -470,11 +470,11 @@ export default function ReunionsPage() {
                 </div>
               </div>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)} className="w-full sm:w-auto">
                 Annuler
               </Button>
-              <Button type="submit">Créer la réunion</Button>
+              <Button type="submit" className="w-full sm:w-auto">Créer la réunion</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -483,7 +483,7 @@ export default function ReunionsPage() {
       {/* Dialogue de modification de réunion */}
       {selectedReunion && (
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Modifier la réunion</DialogTitle>
               <DialogDescription>
@@ -511,7 +511,7 @@ export default function ReunionsPage() {
                     placeholder="Description et objectifs de la réunion" 
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="date">Date et heure</Label>
                     <Input 
@@ -536,11 +536,11 @@ export default function ReunionsPage() {
                   </div>
                 </div>
               </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} className="w-full sm:w-auto">
                   Annuler
                 </Button>
-                <Button type="submit">Enregistrer les modifications</Button>
+                <Button type="submit" className="w-full sm:w-auto">Enregistrer les modifications</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -550,81 +550,43 @@ export default function ReunionsPage() {
       {/* Dialogue de gestion des présences */}
       {selectedReunion && (
         <Dialog open={showPresenceDialog} onOpenChange={setShowPresenceDialog}>
-          <DialogContent className="w-[800px] min-w-[600px] !max-w-none">
+          <DialogContent className="max-w-2xl sm:max-w-[425px] md:max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Gestion des présences</DialogTitle>
+              <DialogTitle>Gérer les présences</DialogTitle>
               <DialogDescription>
-                {selectedReunion.titre} - {formatDate(selectedReunion.date)}
+                Marquez les participants présents à la réunion.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSavePresences}>
-              <div className="py-4">
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-1/2">Participant</TableHead>
-                        <TableHead className="w-16 text-center">Présent</TableHead>
-                        <TableHead className="w-1/2">Participant</TableHead>
-                        <TableHead className="w-16 text-center">Présent</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {Array.from({ length: Math.ceil(associes.length / 2) }).map((_, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            {associes[index] && (
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback>
-                                    {getInitiales(associes[index].nom, associes[index].prenom)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>{associes[index].prenom} {associes[index].nom}</div>
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {associes[index] && (
-                              <Checkbox 
-                                id={`presence-${associes[index].id}`}
-                                name={`presence-${associes[index].id}`}
-                                defaultChecked={selectedReunion.participants.find(p => p.id === associes[index].id)?.present || false}
-                              />
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {associes[index + Math.ceil(associes.length / 2)] && (
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-6 w-6">
-                                  <AvatarFallback>
-                                    {getInitiales(associes[index + Math.ceil(associes.length / 2)].nom, associes[index + Math.ceil(associes.length / 2)].prenom)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>{associes[index + Math.ceil(associes.length / 2)].prenom} {associes[index + Math.ceil(associes.length / 2)].nom}</div>
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {associes[index + Math.ceil(associes.length / 2)] && (
-                              <Checkbox 
-                                id={`presence-${associes[index + Math.ceil(associes.length / 2)].id}`}
-                                name={`presence-${associes[index + Math.ceil(associes.length / 2)].id}`}
-                                defaultChecked={selectedReunion.participants.find(p => p.id === associes[index + Math.ceil(associes.length / 2)].id)?.present || false}
-                              />
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-4">
+                  {selectedReunion.participants.map((participant) => (
+                    <div key={participant.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {getInitiales(participant.nom, participant.prenom)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{participant.prenom} {participant.nom}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`present-${participant.id}`}
+                          name={`present-${participant.id}`}
+                          defaultChecked={participant.present}
+                        />
+                        <Label htmlFor={`present-${participant.id}`}>Présent</Label>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowPresenceDialog(false)}>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button type="button" variant="outline" onClick={() => setShowPresenceDialog(false)} className="w-full sm:w-auto">
                   Annuler
                 </Button>
-                <Button type="submit">Enregistrer</Button>
+                <Button type="submit" className="w-full sm:w-auto">Enregistrer les présences</Button>
               </DialogFooter>
             </form>
           </DialogContent>
